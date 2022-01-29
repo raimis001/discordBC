@@ -30,6 +30,15 @@ client.on("ready", () => {
         //for example, you could do var imgURL = result1.displayAvatarURL();
         console.log(result1.username);
     });
+
+    setInterval(() => {
+        console.log(" timetout");
+         client.commands.get('read').execute(() => {
+             currentValue = client.commands.get('read').value;
+
+             client.commands.get('database').updateValues(currentValue);
+         });    
+    }, 300000);
 });
 
 const fs = require("fs");
@@ -62,9 +71,9 @@ client.on("messageCreate", (message) => {
         pirkt pa usd: !bc usd amount      //pikrt BC par ievadīto summu
         pirkt pa usd: !bc usd all         //pirkt BC par atlikušo summu
         pārdot: !bc sell amount           //pārdot BC
-        pārdot visu: !bc buy all          //pārdot visus BC
+        pārdot visu: !bc sell all         //pārdot visus BC
         spēlētāju tops: !bc top
-        pseido tops: !bc assets           //tjipa it kā bagāti, bet patiesībā, feiks
+        pseido tops: !bc assets           //tjipa it kā bagāti, bet patiesībā feiks
         `);
         return;
     }
@@ -75,6 +84,10 @@ client.on("messageCreate", (message) => {
 
     if (m[1] === "top") { //Reading top
         client.commands.get('database').readTop(client, message);
+        return;
+    }
+    if (m[1] === "graph") {
+        client.commands.get('database').readValues(message);
         return;
     }
 

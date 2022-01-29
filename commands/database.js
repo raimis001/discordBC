@@ -1,3 +1,5 @@
+const e = require('express');
+
 module.exports = {
   name: "database",
   description: "Data base operations",
@@ -14,45 +16,46 @@ module.exports = {
     this.database = fbAdmin.database();
   },
   saveUser(id, data) {
-      const ref = this.database.ref('user-'+id);
-      
-      ref.set( {
-          bc: data.bc,
-           usd: data.usd
-         });
-      
+    const ref = this.database.ref('users/' + id);
+
+    ref.set({
+      bc: data.bc,
+      usd: data.usd
+    });
+
   },
 
   readUser(id, callback) {
-      const ref = this.database.ref('user-'+id);
+    const ref = this.database.ref('users/' + id);
 
-      ref.get().then((snapshot) => {
-        if (snapshot.exists()) {
-          callback(snapshot.val());
-        } else {
-          console.log("No data available");
-          callback(0);
-        }
-      }).catch((error) => {
-        console.error(error);
+    ref.get().then((snapshot) => {
+      if (snapshot.exists()) {
+        callback(snapshot.val());
+      } else {
+        console.log("No data available");
         callback(0);
-      });
+      }
+    }).catch((error) => {
+      console.error(error);
+      callback(0);
+    });
 
   },
 
   readTop(client, message) {
-    const ref = this.database.ref().orderByChild('usd').limitToLast(10);
+    const ref = this.database.ref('users/').orderByChild('usd').limitToLast(10);
 
     const { Collection } = require("discord.js");
     var list = new Collection();
 
     ref.get().then((snapshot) => {
-      
+
       snapshot.forEach((data) => {
-        if (data.val().usd > 0.01)
-        {
-          const usr = data.key.split('-');
-          list.set(usr[1], data.val().usd);
+
+        if (data.val().usd >= 0.01) {
+          const usr = data.key;
+
+          list.set(usr, data.val().usd);
         }
       });
       list.sort((usd1, usd2) => usd2 - usd1);
@@ -68,7 +71,7 @@ module.exports = {
         response.forEach((data, index) => {
 
           const sn = list.get(data.id);
-          msg = msg + `\t${index+1}. ${data.username}: ${sn.toFixed(2)} USD\n`;
+          msg = msg + `\t${index + 1}. ${data.username}: ${sn.toFixed(2)} USD\n`;
 
         });
         message.channel.send(msg);
@@ -78,7 +81,7 @@ module.exports = {
 
   },
   readAssets(rate, client, message) {
-    const ref = this.database.ref();
+    const ref = this.database.ref('users/');
 
     const { Collection } = require("discord.js");
     var list = new Collection();
@@ -87,9 +90,9 @@ module.exports = {
 
       snapshot.forEach((data) => {
         const v = data.val().usd + data.val().bc * rate;
-        const usr = data.key.split('-');
+        const usr = data.key;
 
-        list.set(usr[1],v);
+        list.set(usr, v);
       })
       list.sort((usd1, usd2) => usd2 - usd1);
 
@@ -97,20 +100,83 @@ module.exports = {
       var clientFetch = [];
 
       list.forEach((data, index) => {
-          clientFetch.push(client.users.fetch(index));
+        clientFetch.push(client.users.fetch(index));
       });
 
       Promise.all(clientFetch).then((response) => {
-          var msg = "Pseido bagātnieki:\n";
-          response.forEach((data, index) => {
+        var msg = "Pseido bagātnieki:\n";
+        response.forEach((data, index) => {
 
-              const sn = list.get(data.id);
-              msg = msg + `\t${index+1}. ${data.username}: ${sn.toFixed(2)} P USD\n`;
+          const sn = list.get(data.id);
+          msg = msg + `\t${index + 1}. ${data.username}: ${sn.toFixed(2)} P USD\n`;
 
-          })
-          message.channel.send(msg);
+        })
+        message.channel.send(msg);
       })
 
     });
   },
+
+  updateValues(value) {
+    const tm = Date.now();
+    const ref = this.database.ref(`bc/${tm}`);
+
+    // const { Collection } = require("discord.js");
+    // var list = new Collection();
+
+    // ref.get().then((snapshot) => {
+
+    // });
+
+    ref.set({
+      tm: tm,
+      usd: value,
+    });
+  },
+
+  readValues(message) {
+    const ref = this.database.ref('bc').orderByChild('tm').limitToLast(10);
+
+    const { Collection } = require("discord.js");
+    var list = new Collection();
+
+    ref.get().then((snapshot) => {
+
+      let min = 100000000;
+      let max = 0;
+      snapshot.forEach((data) => {
+        const usd = data.val().usd;
+        if (usd < min) min = usd;
+        if (usd > max) max = usd;
+      })
+
+      console.log(min + " " + max);
+      const delta = max - min;
+      snapshot.forEach((data) => {
+        const usd = 10 * (data.val().usd - min) / delta;
+        console.log(data.key + ": " + data.val().usd + " - " + usd.toFixed(0));
+        list.set(data.key, parseFloat(usd.toFixed(0)))
+      })
+
+      const blank = "░";
+      const black = "▓";
+      let msg = "";
+
+      for (let j = 10; j > 0; j--) {
+
+        for (let i = 0; i < 10; i++) {
+          let v = list.at(i);
+          if (isNaN(v)) v = 0;
+          if (v >= j)
+            msg = msg + black;
+          else
+            msg = msg + blank;
+          msg = msg + blank;
+        }
+        msg = msg + "\n";
+      }
+      message.channel.send(msg);
+    })
+
+  }
 }
