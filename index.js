@@ -177,5 +177,5 @@ client.on("messageCreate", (message) => {
    
 })
 //console.log(process.env.BC_URL);
-client.login("ODY1MTE1NTI5NzE1MjUzMjU5.YO_Tnw.4_-VQrru2q4zkv70R7AZQfLdfyc");
+client.login(process.env.token);
 
