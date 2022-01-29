@@ -1,11 +1,14 @@
+require("dotenv").config();
+
 const express = require("express");
 const app = express();
- app.listen(3000, () => {
+
+app.listen(3000, () => {
     console.log("Start BC bot!");
- });
- app.get("/",(req, res) => {
+});
+app.get("/",(req, res) => {
    res.send("Hello from BC bot");
- });
+});
 
 const { Client, Collection } = require("discord.js");
 const client = new Client({intents: ["GUILDS","GUILD_MESSAGES"]});
@@ -176,6 +179,6 @@ client.on("messageCreate", (message) => {
     });
    
 })
-//console.log(process.env.BC_URL);
+
 client.login(process.env.token);
 
