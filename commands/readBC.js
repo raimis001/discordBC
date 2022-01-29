@@ -25,12 +25,11 @@ module.exports = {
             };
         
             if (!error && res.statusCode == 200) {
-                //console.log(body);
                 this.value = parseFloat(body.data.amount);
                 this.lastReading = Date.now();
             };
 
-            callback();
+            callback(this.value);
         });
     },
 

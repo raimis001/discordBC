@@ -40,7 +40,7 @@ module.exports = {
 
   },
 
-  readTop(callback) {
+  readTop(client, message) {
     const ref = this.database.ref().orderByChild('usd').limitToLast(10);
 
     const { Collection } = require("discord.js");
@@ -57,11 +57,27 @@ module.exports = {
       });
       list.sort((usd1, usd2) => usd2 - usd1);
 
-      callback(list);
+      var clientFetch = [];
+      list.forEach((data, index) => {
+        clientFetch.push(client.users.fetch(index));
+      })
+
+      Promise.all(clientFetch).then((response) => {
+        var msg = "Pasaules biezākie discordisti:\n";
+
+        response.forEach((data, index) => {
+
+          const sn = list.get(data.id);
+          msg = msg + `\t${index+1}. ${data.username}: ${sn.toFixed(2)} USD\n`;
+
+        });
+        message.channel.send(msg);
+      })
+
     });
 
   },
-  readAssets(rate, callback) {
+  readAssets(rate, client, message) {
     const ref = this.database.ref();
 
     const { Collection } = require("discord.js");
@@ -77,7 +93,24 @@ module.exports = {
       })
       list.sort((usd1, usd2) => usd2 - usd1);
 
-      callback(list);
+
+      var clientFetch = [];
+
+      list.forEach((data, index) => {
+          clientFetch.push(client.users.fetch(index));
+      });
+
+      Promise.all(clientFetch).then((response) => {
+          var msg = "Pseido bagātnieki:\n";
+          response.forEach((data, index) => {
+
+              const sn = list.get(data.id);
+              msg = msg + `\t${index+1}. ${data.username}: ${sn.toFixed(2)} P USD\n`;
+
+          })
+          message.channel.send(msg);
+      })
+
     });
   },
 }
