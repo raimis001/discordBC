@@ -135,7 +135,7 @@ module.exports = {
   },
 
   readValues(message) {
-    const ref = this.database.ref('bc').orderByChild('tm').limitToLast(10);
+    const ref = this.database.ref('bc').orderByChild('tm').limitToLast(12);
 
     const { Collection } = require("discord.js");
     var list = new Collection();
@@ -150,11 +150,9 @@ module.exports = {
         if (usd > max) max = usd;
       })
 
-      console.log(min + " " + max);
       const delta = max - min;
       snapshot.forEach((data) => {
         const usd = 10 * (data.val().usd - min) / delta;
-        console.log(data.key + ": " + data.val().usd + " - " + usd.toFixed(0));
         list.set(data.key, parseFloat(usd.toFixed(0)))
       })
 
@@ -162,9 +160,15 @@ module.exports = {
       const black = "▓";
       let msg = "";
 
-      for (let j = 10; j > 0; j--) {
+      for (let i = 0; i < 12; i++) {
+        msg = msg + blank + blank;
+      }
 
-        for (let i = 0; i < 10; i++) {
+      msg = msg + blank + "\n";
+
+      for (let j = 10; j > 0; j--) {
+        msg = msg + blank;
+        for (let i = 0; i < 12; i++) {
           let v = list.at(i);
           if (isNaN(v)) v = 0;
           if (v >= j)
@@ -175,7 +179,13 @@ module.exports = {
         }
         msg = msg + "\n";
       }
-      message.channel.send(msg);
+      for (let i = 0; i < 12; i++) {
+        msg = msg + blank + black;
+      }
+
+      msg = msg + blank + "\n";
+
+      message.channel.send("Pēdējās stundas grafiks\n" + msg + `min:${min} max:${max}`);
     })
 
   }

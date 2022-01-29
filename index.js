@@ -32,12 +32,12 @@ client.on("ready", () => {
     });
 
     setInterval(() => {
-        console.log(" timetout");
-         client.commands.get('read').execute(() => {
-             currentValue = client.commands.get('read').value;
+        //console.log(" timetout");
+        client.commands.get('read').execute(() => {
+            currentValue = client.commands.get('read').value;
 
-             client.commands.get('database').updateValues(currentValue);
-         });    
+            client.commands.get('database').updateValues(currentValue);
+        });
     }, 300000);
 });
 
@@ -132,13 +132,14 @@ client.on("messageCreate", (message) => {
                     consoleMessage = `Tu nopirki ${bc.toFixed(4)} BC`;
                     client.commands.get('database').saveUser(message.author.id, userData);
                 } else {
-                    let v = parseFloat(m[2].toFixed(2));
+                    let v = parseFloat(m[2]);
                     if (isNaN(v)) {
                         consoleMessage = "Tiešām! Tik grūti ievadīt pareizu vērtību!?";
                     } else {
                         if (v > userData.usd) {
                             consoleMessage = "Utubunga! Paskaties cik tev ir naudas  pingvīns tāds!";
                         } else {
+                            v = parseFloat(v.toFixed(2));
                             let bc = parseFloat((v / currentValue).toFixed(4));
                             userData.usd -= v;
                             userData.bc += bc;
@@ -156,13 +157,14 @@ client.on("messageCreate", (message) => {
                     userData.usd = userData.usd + parseFloat((v * currentValue).toFixed(2));
                     client.commands.get('database').saveUser(message.author.id, userData);
                 } else {
-                    let v = parseFloat(m[2].toFixed(4));
+                    let v = parseFloat(m[2]);
                     if (isNaN(v)) {
                         consoleMessage = "Nav tāda skaitļa, mēģini vel";
                     } else {
                         if (v > userData.bc) {
                             consoleMessage = "Negrāb skaitļus no gaisa, Tev nav tik daudz.";
                         } else {
+                            v = parseFloat(v.toFixed(4));
                             userData.bc = userData.bc - v;
                             userData.usd = userData.usd + parseFloat((v * currentValue).toFixed(2));
                             client.commands.get('database').saveUser(message.author.id, userData);
