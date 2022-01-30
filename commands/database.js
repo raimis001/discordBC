@@ -34,7 +34,7 @@ module.exports = {
       }
 
       let userData = { bc: 1, usd: 0 };
-      this.saveUser(message.author.id, userData);
+      this.saveUser(id, userData);
       return callback(userData);
 
     }).catch((error) => {
