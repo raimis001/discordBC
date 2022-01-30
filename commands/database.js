@@ -189,17 +189,9 @@ module.exports = {
 
       msg = msg + blank + "\n";
 
-      message.channel.send("Pēdējās stundas grafiks\n" + msg + `min:${min} max:${max}`);
+      message.channel.send("Pēdējās stundas grafiks\n" + msg + `min:${min} max:${max} curr:${this.currentValue}`);
     })
 
-  },
-
-  emptyCommand(message, args, callback) {
-    this.readUser(message.author.id, (data) => {
-      if (data === 0)
-        return callback("Database error!");
-
-    })
   },
 
   helpMessage(message) {
