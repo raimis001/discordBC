@@ -205,13 +205,14 @@ module.exports = {
   helpMessage(message) {
     message.reply(
       `Izmanto komandas 
-    pirkt: !bc buy amount             //pirkt BC
-    pirkt pa usd: !bc usd amount      //pikrt BC par ievadīto summu
-    pirkt pa usd: !bc usd all         //pirkt BC par atlikušo summu
-    pārdot: !bc sell amount           //pārdot BC
-    pārdot visu: !bc sell all         //pārdot visus BC
-    spēlētāju tops: !bc top
-    pseido tops: !bc assets           //tjipa it kā bagāti, bet patiesībā feiks
+    pirkt: !bc (b)uy amount             //pirkt BC
+    pirkt pa usd: !bc (u)sd amount      //pikrt BC par ievadīto summu
+    pirkt pa usd: !bc (u)sd (a)ll         //pirkt BC par atlikušo summu
+    pārdot: !bc (s)ell amount           //pārdot BC
+    pārdot visu: !bc (s)ell (a)ll         //pārdot visus BC
+    spēlētāju tops: !bc (t)op
+    pseido tops: !bc (a)ssets           //tjipa it kā bagāti, bet patiesībā feiks
+    graftks: !bc (t)op                  //parāda pēdējās stundas BC grafiku
 `);
   },
 
