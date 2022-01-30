@@ -16,6 +16,7 @@ const client = new Client({ intents: ["GUILDS", "GUILD_MESSAGES"] });
 client.on("ready", () => {
     client.commands.get('database').init();
     client.commands.get('database').client = client;
+    client.commands.get('punch').database =  client.commands.get('database');
 
     client.commands.get('read').readValue((val) => {
         currentValue = val;
@@ -24,13 +25,12 @@ client.on("ready", () => {
 
     console.log(`${client.user.username} is ready`);
 
-
-    let thanos = client.users.fetch('192163960814960650');
-    thanos.then((result1) => {
-        //put your code that uses the result1 (the user object) here
-        //for example, you could do var imgURL = result1.displayAvatarURL();
-        console.log(result1.username);
-    });
+    // let thanos = client.users.fetch('192163960814960650');
+    // thanos.then((result1) => {
+    //     //put your code that uses the result1 (the user object) here
+    //     //for example, you could do var imgURL = result1.displayAvatarURL();
+    //     console.log(result1.username);
+    // });
 
     setInterval(() => {
         //console.log(" timetout");
@@ -55,17 +55,19 @@ cmdFiles.forEach(file => {
 
 
 const PREF = "!bc";
+const PUNCH = "!punch"
 let currentValue = 0;
 
 
 client.on("messageCreate", (message) => {
     if (message.author.bot) return;
     const msg = message.content.trim().toLowerCase();
-    if (!msg.startsWith(PREF)) return;
-
     const args = msg.split(/\s+/);
 
+    if (msg.startsWith(PUNCH))
+        return client.commands.get('punch').punch(message, args);
 
+    if (!msg.startsWith(PREF)) return;
     client.commands.get('read').execute(() => {
         currentValue = client.commands.get('read').value;
         client.commands.get('database').currentValue = currentValue;
