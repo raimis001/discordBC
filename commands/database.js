@@ -5,6 +5,8 @@ module.exports = {
   description: "Data base operations",
 
   database: 0,
+  client: 0,
+  currentValue: 0,
   init() {
     const fbAdmin = require('firebase-admin');
     var serviceAccount = require("../firebase.json");
@@ -30,11 +32,13 @@ module.exports = {
 
     ref.get().then((snapshot) => {
       if (snapshot.exists()) {
-        callback(snapshot.val());
-      } else {
-        console.log("No data available");
-        callback(0);
+        return callback(snapshot.val());
       }
+
+      let userData = { bc: 1, usd: 0 };
+      this.saveUser(message.author.id, userData);
+      return callback(userData);
+
     }).catch((error) => {
       console.error(error);
       callback(0);
@@ -42,7 +46,7 @@ module.exports = {
 
   },
 
-  readTop(client, message) {
+  readTop(message) {
     const ref = this.database.ref('users/').orderByChild('usd').limitToLast(10);
 
     const { Collection } = require("discord.js");
@@ -62,7 +66,7 @@ module.exports = {
 
       var clientFetch = [];
       list.forEach((data, index) => {
-        clientFetch.push(client.users.fetch(index));
+        clientFetch.push(this.client.users.fetch(index));
       })
 
       Promise.all(clientFetch).then((response) => {
@@ -80,7 +84,7 @@ module.exports = {
     });
 
   },
-  readAssets(rate, client, message) {
+  readAssets(message) {
     const ref = this.database.ref('users/');
 
     const { Collection } = require("discord.js");
@@ -89,7 +93,7 @@ module.exports = {
     ref.get().then((snapshot) => {
 
       snapshot.forEach((data) => {
-        const v = data.val().usd + data.val().bc * rate;
+        const v = data.val().usd + data.val().bc * this.currentValue;
         const usr = data.key;
 
         list.set(usr, v);
@@ -100,7 +104,7 @@ module.exports = {
       var clientFetch = [];
 
       list.forEach((data, index) => {
-        clientFetch.push(client.users.fetch(index));
+        clientFetch.push(this.client.users.fetch(index));
       });
 
       Promise.all(clientFetch).then((response) => {
@@ -188,5 +192,120 @@ module.exports = {
       message.channel.send("Pēdējās stundas grafiks\n" + msg + `min:${min} max:${max}`);
     })
 
-  }
+  },
+
+  emptyCommand(message, args, callback) {
+    this.readUser(message.author.id, (data) => {
+      if (data === 0)
+        return callback("Database error!");
+
+    })
+  },
+
+  helpMessage(message) {
+    message.reply(
+      `Izmanto komandas 
+    pirkt: !bc buy amount             //pirkt BC
+    pirkt pa usd: !bc usd amount      //pikrt BC par ievadīto summu
+    pirkt pa usd: !bc usd all         //pirkt BC par atlikušo summu
+    pārdot: !bc sell amount           //pārdot BC
+    pārdot visu: !bc sell all         //pārdot visus BC
+    spēlētāju tops: !bc top
+    pseido tops: !bc assets           //tjipa it kā bagāti, bet patiesībā feiks
+`);
+  },
+
+  messageReplay(message, text, data) {
+    message.reply(`${text} \n BC value is ${this.currentValue} \n\t you have ${data.bc.toFixed(4)} BC and ${data.usd.toFixed(2)} USD`);
+  },
+
+  buyBc(message, args, data) {
+
+    let text = "";
+    let bc = parseFloat(args[2]);
+    if (isNaN(bc)) {
+      text = "Domāji piečakarēsi? Ieraksti pareizu vērtību";
+    } else {
+      bc = parseFloat(bc.toFixed(4));
+      let usd = parseFloat((bc * this.currentValue).toFixed(2));
+      if (usd > data.usd) {
+        text = "Tu esi nabaga proletariāts un nevari pirkt BC";
+      } else {
+        data.usd -= usd;
+        data.bc += bc;
+        text = `Tu nopirki ${bc.toFixed(4)} BC pa ${usd.toFixed(2)}`;
+        this.saveUser(message.author.id, data);
+      }
+    }
+
+    this.messageReplay(message, text, data);
+
+  },
+
+  buyUsd(message, args, data) {
+
+    let text = "";
+    if (args[2] === "all" || args[2] === "a") {
+      let usd = data.usd;
+      let bc = parseFloat((usd / this.currentValue).toFixed(4));
+      data.usd = 0;
+      data.bc += bc;
+      this.saveUser(message.author.id, data);
+      text = `Tu nopirki ${bc.toFixed(4)} BC pa ${usd.toFixed(2)}`;
+    } else {
+      let usd = parseFloat(args[2]);
+      if (isNaN(usd)) {
+        text = "Tiešām!? Tik grūti ievadīt pareizu vērtību!?";
+      } else {
+        usd = parseFloat(usd.toFixed(2));
+        if (usd > data.usd) {
+          text = "Utubunga! Paskaties cik tev ir naudas, pingvīns tāds!";
+        } else {
+          let bc = parseFloat((usd / this.currentValue).toFixed(4));
+          data.usd -= usd;
+          data.bc += bc;
+          this.saveUser(message.author.id, data);
+          text = `Tu nopirki ${bc.toFixed(4)} BC pa ${usd.toFixed(2)}`;
+        }
+      }
+    }
+
+    this.messageReplay(message, text, data);
+  },
+
+  sell(message, args, data) {
+
+    let text = "";
+    if (args[2] === "all" || args[2] === "a") {
+      let bc = data.bc;
+      let usd = parseFloat((bc * this.currentValue).toFixed(2));
+      data.bc = 0;
+      data.usd += usd;
+      this.saveUser(message.author.id, data);
+      text = `Tu pārdevi ${bc.toFixed(4)} BC un ieguvi ${usd.toFixed(2)} USD`
+    } else {
+      let bc = parseFloat(args[2]);
+      if (isNaN(bc)) {
+        text = "Nav tāda skaitļa, mēģini vel";
+      } else {
+        bc = parseFloat(bc.toFixed(4));
+        if (bc > data.bc) {
+          text = "Negrāb skaitļus no gaisa, Tev nav tik daudz.";
+        } else {
+          let usd = parseFloat((bc * this.currentValue).toFixed(2));
+          data.bc -= bc;
+          data.usd += usd;
+          this.saveUser(message.author.id, data);
+          text = `Tu pārdevi ${bc.toFixed(4)} BC un ieguvi ${usd.toFixed(2)} USD`
+        }
+      }
+    }
+
+    this.messageReplay(message, text, data);
+  },
+
+  showData(message, data) {
+    let text = "Tavs maciņš";
+    this.messageReplay(message, text, data);
+  },
 }
