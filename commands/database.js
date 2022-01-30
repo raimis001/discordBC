@@ -212,7 +212,7 @@ module.exports = {
     pārdot visu: !bc (s)ell (a)ll         //pārdot visus BC
     spēlētāju tops: !bc (t)op
     pseido tops: !bc (a)ssets           //tjipa it kā bagāti, bet patiesībā feiks
-    graftks: !bc (t)op                  //parāda pēdējās stundas BC grafiku
+    graftks: !bc (g)raph                  //parāda pēdējās stundas BC grafiku
 `);
   },
 
