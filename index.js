@@ -16,7 +16,9 @@ const client = new Client({ intents: ["GUILDS", "GUILD_MESSAGES"] });
 client.on("ready", () => {
     client.commands.get('database').init();
     client.commands.get('database').client = client;
-    client.commands.get('punch').database =  client.commands.get('database');
+
+    client.commands.get('viking').database = client.commands.get('database').database;
+    client.commands.get('viking').init();
 
     client.commands.get('read').readValue((val) => {
         currentValue = val;

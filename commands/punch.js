@@ -4,7 +4,6 @@ module.exports = {
     name: "punch",
     description: "Punch interface",
 
-    database: 0,
     messages: [
         "%s atvēzejas sitienam ar %s un belž %s pa %s",
         "%s sakoncetrējas un sit ar %s pa %s kaut kur pa %s",

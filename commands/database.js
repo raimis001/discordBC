@@ -123,17 +123,12 @@ module.exports = {
     const tm = Date.now();
     const ref = this.database.ref(`bc/${tm}`);
 
-    // const { Collection } = require("discord.js");
-    // var list = new Collection();
-
-    // ref.get().then((snapshot) => {
-
-    // });
-
     ref.set({
       tm: tm,
       usd: value,
     });
+
+    this.clearValues();
   },
 
   readValues(message) {
@@ -188,8 +183,24 @@ module.exports = {
       msg = msg + blank + "\n";
 
       message.channel.send("Pēdējās stundas grafiks\n" + msg + `min:${min} max:${max} curr:${this.currentValue}`);
+
+
     })
 
+  },
+
+  clearValues() {
+    const tm = Date.now() - 60 * 60 * 1000;
+    const ref = this.database.ref('bc').orderByChild('tm').endAt(tm);
+    //console.log(tm);
+
+    ref.get().then((snapshot) => {
+      snapshot.forEach((data) => {
+        //console.log(data.key);
+        data.ref.remove();
+      });
+
+    });
   },
 
   helpMessage(message) {
