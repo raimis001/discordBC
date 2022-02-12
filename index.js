@@ -14,10 +14,12 @@ const { Client, Collection } = require("discord.js");
 const client = new Client({ intents: ["GUILDS", "GUILD_MESSAGES"] });
 
 client.on("ready", () => {
+
     client.commands.get('database').init();
     client.commands.get('database').client = client;
 
     client.commands.get('viking').database = client.commands.get('database').database;
+    client.commands.get('viking').discord = client;
     client.commands.get('viking').init();
 
     client.commands.get('read').readValue((val) => {
@@ -57,7 +59,9 @@ cmdFiles.forEach(file => {
 
 
 const PREF = "!bc";
-const PUNCH = "!punch"
+const PUNCH = "!punch";
+const VIKING = "!v";
+
 let currentValue = 0;
 
 
@@ -68,6 +72,9 @@ client.on("messageCreate", (message) => {
 
     if (msg.startsWith(PUNCH))
         return client.commands.get('punch').punch(message, args);
+
+    if (msg.startsWith(VIKING))
+        return client.commands.get('viking').process(message, args);
 
     if (!msg.startsWith(PREF)) return;
     client.commands.get('read').execute(() => {

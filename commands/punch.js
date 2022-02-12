@@ -35,14 +35,16 @@ module.exports = {
     draws: [
         "varbūt no malas viss nav redzams, bet gan %s gan %s jau jūt, šī cīņa nav galā un tā būs jātrpina",
         "kas par %s sitienu, bet kad kaujas putekļi ir nosedušies, var redzēt %s siluetu, šajā ciņā ir neizšķirts",
-        "%s izdara sav sitienu, bet %s vēsi to atraida, gaidīsim turpinājumu, pagaidām neizšķirts",
+        "%s izdara savu sitienu, bet %s vēsi to atraida, gaidīsim turpinājumu, pagaidām neizšķirts",
     ],
     punch(message, args) {
 
         let targetMember = message.mentions.members.first();
         if (!targetMember)
-            return message.channel.send("No mentions");
+            return message.channel.send(`<@${message.author.id}> apgriežas ap savu asi ar dusmīgu skatienu, bet tuvumā neviena nav.`);
 
+        if (targetMember.user.id === message.author.id)
+            return message.channel.send(`<@${message.author.id}> ar blīkšķi iebliež sev pa ausi!\nKāds apkaunijums!`);
 
         const usr = `<@${message.author.id}>`;
         const trg = `<@${targetMember.user.id}>`;
