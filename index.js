@@ -22,6 +22,10 @@ client.on("ready", () => {
     client.commands.get('viking').discord = client;
     client.commands.get('viking').init();
 
+    client.commands.get('slot').database = client.commands.get('database');
+    client.commands.get('slot').discord = client;
+
+
     client.commands.get('read').readValue((val) => {
         currentValue = val;
         console.log(currentValue);
@@ -61,6 +65,7 @@ cmdFiles.forEach(file => {
 const PREF = "!bc";
 const PUNCH = "!punch";
 const VIKING = "!v";
+const SLOT = "!slot";
 
 let currentValue = 0;
 
@@ -75,6 +80,9 @@ client.on("messageCreate", (message) => {
 
     if (msg.startsWith(VIKING))
         return client.commands.get('viking').process(message, args);
+
+    if (msg.startsWith(SLOT))
+        return client.commands.get('slot').process(message, args);
 
     if (!msg.startsWith(PREF)) return;
     client.commands.get('read').execute(() => {
