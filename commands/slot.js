@@ -16,15 +16,21 @@ module.exports = {
         { line: "╔══╗", multi: 7 },
         { line: "╚══╝", multi: 8 },
         { line: "╠══╣", multi: 9 },
+        { line: "╔╬╬╗", multi: 10 },
+        { line: "╚╬╬╝", multi: 11 },
+
     ],
     rand: [
-        "══╬╬╠╔╚╠",
-        "═╬═╬╬═══",
-        "═╬═╬╬═══",
-        "══╬╬╣╗╝╣",
+        "══╬╬╠╔╚╠╔",
+        "═╬═╬╬═══╬",
+        "═╬═╬╬═══╬",
+        "══╬╬╣╗╝╣╝",
     ],
 
     process(message, args) {
+
+        if (args[1] === 'help' || args[1] === 'h')
+            return this.showHelp(message);
 
         this.database.readUser(message.author.id, (userData) => {
             if (userData.usd < 1) {
@@ -42,17 +48,17 @@ module.exports = {
             }
 
 
-            const r0 = this.rand[0][this.getRandomInt(0, 7)];
-            const r1 = this.rand[1][this.getRandomInt(0, 7)];
-            const r2 = this.rand[2][this.getRandomInt(0, 7)];
-            const r3 = this.rand[3][this.getRandomInt(0, 7)];
+            const r0 = this.rand[0][this.getRandomInt(0, 8)];
+            const r1 = this.rand[1][this.getRandomInt(0, 8)];
+            const r2 = this.rand[2][this.getRandomInt(0, 8)];
+            const r3 = this.rand[3][this.getRandomInt(0, 8)];
 
-            const msg = `${r0} ${r1} ${r2} ${r3}`;
+            const msg = `${r0}${r1}${r2}${r3}`;
 
 
             let win = 0;
             this.victory.forEach(element => {
-                if (element.line === msg) {
+                if (element.line.startsWith(msg)) {
                     win = element.multi;
                 }
             });
@@ -60,27 +66,44 @@ module.exports = {
             userData.usd = userData.usd - usd + usd * win;
             this.database.saveUser(message.author.id, userData);
 
-            setTimeout(() => {
-                message.reply(`${r0} ...`);
-                setTimeout(() => {
-                    message.reply(`${r0} ${r1} ...`);
-                    setTimeout(() => {
-                        message.reply(`${r0} ${r1} ${r2} ...`);
-                        setTimeout(() => {
-                            let m = msg;
-                            if (win == 0)
-                                m = msg + `\nTu zaudēji summu ${usd} USD`;
-                            else
-                                m = msg + `\Tev izkrita laimests ${usd * win} USD!`;
+            // setTimeout(() => {
+            //     message.reply(`${r0} ...`);
+            //     setTimeout(() => {
+            //         message.reply(`${r0} ${r1} ...`);
+            //         setTimeout(() => {
+            //             message.reply(`${r0} ${r1} ${r2} ...`);
+            //             setTimeout(() => {
+            //                 let m = `${r0} ${r1} ${r2} ${r3}\n`;
+            //                 if (win == 0)
+            //                     m += `Tu zaudēji summu ${usd} USD`;
+            //                 else
+            //                     m += `Tev izkrita laimests ${usd * win} USD!`;
 
-                            message.reply(m);
-                        }, 500);
-                    }, 500);
-                }, 500);
-            }, 500);
+            //                 message.reply(m);
+            //             }, 500);
+            //         }, 500);
+            //     }, 500);
+            // }, 500);
 
-            
+            let m = `${r0} ${r1} ${r2} ${r3}\n`;
+            if (win == 0)
+                m += `Tu zaudēji summu ${usd} USD`;
+            else
+                m += `Tev izkrita laimests ${usd * win} USD!`;
+
+            message.reply(m);
         });
+
+    },
+
+    showHelp(message) {
+
+        let msg = `Uzvaras paterni:\n`;
+        this.victory.forEach(element => {
+            msg += `${element.line} x ${element.multi} USD\n`;
+        });
+
+        message.channel.send(msg);
 
     },
 
