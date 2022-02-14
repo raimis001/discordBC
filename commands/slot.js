@@ -8,16 +8,16 @@ module.exports = {
     l: "═╬╠╣╔╗╚╝",
 
     victory: [
-        { line: "════", multi: 2 },
-        { line: "═╬╬═", multi: 3 },
-        { line: "╬══╬", multi: 4 },
-        { line: "╬╬╬╬", multi: 5 },
-        { line: "╠╬╬╣", multi: 6 },
-        { line: "╔══╗", multi: 7 },
-        { line: "╚══╝", multi: 8 },
-        { line: "╠══╣", multi: 9 },
-        { line: "╔╬╬╗", multi: 10 },
-        { line: "╚╬╬╝", multi: 11 },
+        { line: "════", multi: 5 },
+        { line: "═╬╬═", multi: 10 },
+        { line: "╬══╬", multi: 20 },
+        { line: "╬╬╬╬", multi: 50 },
+        { line: "╠╬╬╣", multi: 50 },
+        { line: "╔══╗", multi: 30 },
+        { line: "╚══╝", multi: 30 },
+        { line: "╠══╣", multi: 40 },
+        { line: "╔╬╬╗", multi: 60 },
+        { line: "╚╬╬╝", multi: 60 },
 
     ],
     rand: [
