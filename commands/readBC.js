@@ -18,10 +18,39 @@ module.exports = {
 
         setInterval(() => {
             this.execute(() => {
-                this.database.updateValues(currentValue);
+                this.updateValues(this.currentValue);
             });
         }, 300000);
+
+        this.readValue((val) => {
+            console.log(val);
+        });
     },
+
+    saveUser(id, data) {
+        const ref = this.db.ref(`users/${id}`);
+        ref.set(data);
+    },
+
+    readUser(id, callback) {
+        const ref = this.db.ref(`users/${id}`);
+
+        ref.get().then((snapshot) => {
+            if (snapshot.exists()) {
+                return callback(snapshot.val());
+            }
+
+            let userData = { bc: 1, usd: 0 };
+            this.saveUser(id, userData);
+            return callback(userData);
+
+        }).catch((error) => {
+            console.error(error);
+            callback(0);
+        });
+
+    },
+
 
     execute(callback) {
 
@@ -94,7 +123,7 @@ module.exports = {
             if (args[1] === "graph" || args[1] === "g")
                 return this.showGraph(message);
 
-            this.database.readUser(message.author.id, (data) => {
+            this.readUser(message.author.id, (data) => {
                 if (data === 0)
                     return message.reply("Atvainojiet, tehniskas problēmas.");
 

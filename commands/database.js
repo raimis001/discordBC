@@ -15,30 +15,5 @@ module.exports = {
     this.database = fbAdmin.database();
   },
 
-
-  saveUser(id, data) {
-    const ref = this.database.ref('users/' + id);
-    ref.set(data);
-  },
-
-  readUser(id, callback) {
-    const ref = this.database.ref('users/' + id);
-
-    ref.get().then((snapshot) => {
-      if (snapshot.exists()) {
-        return callback(snapshot.val());
-      }
-
-      let userData = { bc: 1, usd: 0 };
-      this.saveUser(id, userData);
-      return callback(userData);
-
-    }).catch((error) => {
-      console.error(error);
-      callback(0);
-    });
-
-  },
-
-  
+ 
 }

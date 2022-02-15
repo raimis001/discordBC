@@ -2,7 +2,7 @@ module.exports = {
     name: "slot",
     description: "slot mashine simulation",
 
-    database: 0,
+    bc: 0,
     discord: 0,
 
     l: "═╬╠╣╔╗╚╝",
@@ -32,7 +32,7 @@ module.exports = {
         if (args[1] === 'help' || args[1] === 'h')
             return this.showHelp(message);
 
-        this.database.readUser(message.author.id, (userData) => {
+        this.bc.readUser(message.author.id, (userData) => {
             if (userData.usd < 1) {
                 message.reply("Tev nepietiek naudas pat vienam griezienam!");
                 return;
@@ -69,7 +69,7 @@ module.exports = {
             });
 
             userData.usd = userData.usd - usd + usd * win;
-            this.database.saveUser(message.author.id, userData);
+            this.bc.saveUser(message.author.id, userData);
 
             // setTimeout(() => {
             //     message.reply(`${r0} ...`);
