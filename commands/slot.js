@@ -41,6 +41,11 @@ module.exports = {
             let usd = 1;
             if (!isNaN(args[1])) {
                 usd = parseFloat(args[1]);
+                if (usd < 1)
+                {
+                    message.reply("Uzliec vismaz kaut kādu naudiņu!");
+                    return;
+                }
                 if (userData.usd < usd) {
                     message.reply("Tev nav tik daudz naudas!");
                     return;
