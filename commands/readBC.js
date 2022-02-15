@@ -109,7 +109,6 @@ module.exports = {
 
     process(message, args) {
         this.execute(() => {
-            this.database.currentValue = this.currentValue;
 
             if (args[1] === "help" || args[1] === "h")
                 return this.helpMessage(message);
@@ -307,7 +306,7 @@ module.exports = {
                 data.usd -= usd;
                 data.bc += bc;
                 text = `Tu nopirki ${bc.toFixed(4)} BC pa ${usd.toFixed(2)}`;
-                this.database.saveUser(message.author.id, data);
+                this.saveUser(message.author.id, data);
             }
         }
 
@@ -323,7 +322,7 @@ module.exports = {
             let bc = parseFloat((usd / this.currentValue).toFixed(4));
             data.usd = 0;
             data.bc += bc;
-            this.database.saveUser(message.author.id, data);
+            this.saveUser(message.author.id, data);
             text = `Tu nopirki ${bc.toFixed(4)} BC pa ${usd.toFixed(2)}`;
         } else {
             let usd = parseFloat(args[2]);
@@ -337,7 +336,7 @@ module.exports = {
                     let bc = parseFloat((usd / this.currentValue).toFixed(4));
                     data.usd -= usd;
                     data.bc += bc;
-                    this.database.saveUser(message.author.id, data);
+                    this.saveUser(message.author.id, data);
                     text = `Tu nopirki ${bc.toFixed(4)} BC pa ${usd.toFixed(2)}`;
                 }
             }
@@ -354,7 +353,7 @@ module.exports = {
             let usd = parseFloat((bc * this.currentValue).toFixed(2));
             data.bc = 0;
             data.usd += usd;
-            this.database.saveUser(message.author.id, data);
+            this.saveUser(message.author.id, data);
             text = `Tu pārdevi ${bc.toFixed(4)} BC un ieguvi ${usd.toFixed(2)} USD`
         } else {
             let bc = parseFloat(args[2]);
@@ -368,7 +367,7 @@ module.exports = {
                     let usd = parseFloat((bc * this.currentValue).toFixed(2));
                     data.bc -= bc;
                     data.usd += usd;
-                    this.database.saveUser(message.author.id, data);
+                    this.saveUser(message.author.id, data);
                     text = `Tu pārdevi ${bc.toFixed(4)} BC un ieguvi ${usd.toFixed(2)} USD`
                 }
             }
