@@ -156,7 +156,7 @@ module.exports = {
     },
 
     readAssets(message) {
-        const ref = this.database.database.ref('users/');
+        const ref = this.db.ref('users/');
 
 
         var list = new Collection();
