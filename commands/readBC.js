@@ -287,10 +287,6 @@ module.exports = {
 
     },
 
-    messageReplay(message, text, data) {
-        message.reply(`${text} \n BC value is ${this.currentValue} \n\t you have ${data.bc.toFixed(4)} BC and ${data.usd.toFixed(2)} USD`);
-    },
-
     buyBc(message, args, data) {
 
         let text = "";
@@ -376,6 +372,10 @@ module.exports = {
         this.messageReplay(message, text, data);
     },
 
+    messageReplay(message, text, data) {
+        message.reply(`${text} \n BC value is ${this.currentValue} \n\t you have ${data.bc.toFixed(4)} BC and ${data.usd.toFixed(2)} USD`);
+    },
+    
     showData(message, data) {
         let text = "Tavs maciņš";
         this.messageReplay(message, text, data);

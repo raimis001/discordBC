@@ -56,7 +56,7 @@ client.on("messageCreate", (message) => {
     const args = msg.split(/\s+/);
 
     if (msg.startsWith(PUNCH))
-        return client.commands.get('punch').punch(message, args);
+        return client.commands.get('punch').process(message, args);
 
     if (msg.startsWith(VIKING))
         return client.commands.get('viking').process(message, args);

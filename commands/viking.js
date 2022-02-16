@@ -310,7 +310,7 @@ module.exports = {
     return cnt;
   },
 
-  setInventory(id, count) {
+  setInventory(id, count, userData) {
     userData.inventory.forEach(item => {
       if (item.id === id)
         item.count += count;
@@ -344,6 +344,20 @@ module.exports = {
       return;
     }
 
+    if (args[2] === 'all' || args[2] === 'a') {//Pickup all items
+      let msg = `Tu pacēli:\n`;
+      worldData.items.forEach(item =>{
+        this.setInventory(item.id, item.count, userData);
+        const itm = this.getItem(item.id);
+        msg += `\t${itm.name} ${item.count}\n`;
+        item.count = 0;
+      });
+      this.saveInventory(message.author.id, userData);
+      this.saveWorldItems(userData.current, worldData.items);
+      message.channel.send(msg);
+      return;
+    }
+
     let id = -1;
     this.items.forEach(item => {
       if (item.name == args[2]) {
@@ -352,7 +366,7 @@ module.exports = {
     });
 
     if (id < 0) {
-      message.channel.send("Neparezi ivadīts nosaukums: " + args[2]);
+      message.channel.send("Neparezi ievadīts nosaukums: " + args[2]);
       return;
     }
 

@@ -37,7 +37,7 @@ module.exports = {
         "kas par %s sitienu, bet kad kaujas putekļi ir nosedušies, var redzēt %s siluetu, šajā ciņā ir neizšķirts",
         "%s izdara savu sitienu, bet %s vēsi to atraida, gaidīsim turpinājumu, pagaidām neizšķirts",
     ],
-    punch(message, args) {
+    process(message, args) {
 
         let targetMember = message.mentions.members.first();
         if (!targetMember)
