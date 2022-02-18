@@ -45,7 +45,55 @@ module.exports = {
     //   console.log(this.getPerlin(0+i, 5));
     // }
 
+
   },
+  //#region PROCESS MESSAGES
+
+  process(message, args) {
+
+    this.getUser(message.author.id,
+
+      (userData) => {
+        this.getWorld(userData.current,
+          (worldData) => {
+            this.processMessage(userData, worldData, message, args);
+          },
+          () => { console.log("World reading error"); }
+        )
+      },
+      () => { console.log("User data reading error"); }
+    );
+
+
+  },
+
+
+  processMessage(userData, worldData, message, args) {
+    if (args.length <= 1)
+      return this.getInfo(userData, worldData, message);
+
+    if (args[1] === 'pick' || args[1] === 'p')
+      return this.pickItem(userData, worldData, message, args)
+
+    if (args[1] === 'inventory' || args[1] === 'i')
+      return this.showInventory(userData, worldData, message);
+
+    if (args[1] === 'go' || args[1] === 'g')
+      return this.gotoWorld(userData, worldData, message, args);
+
+    if (args[1] === 'teleport' || args[1] === 't')
+      return this.teleport(userData, worldData, message, args);
+
+    if (args[1] === 'eat' || args[1] === 'e')
+      return this.eatItem(userData, message, args);
+
+    if (args[1] === 'build' || args[1] === 'b')
+      return this.build(userData, worldData, message, args);
+
+  },
+  //#endregion
+
+  //#region USER DATA
 
   newUser(id) {
     let x = this.getRandomInt(500, 5000);
@@ -81,13 +129,9 @@ module.exports = {
 
     ref.set(data);
   },
+  //#endregion
 
-  saveInventory(id, userData) {
-
-    const ref = this.database.ref(`viking/users/${id}/inventory`);
-    ref.set(userData.inventory);
-  },
-
+  //#region WORLD DATA
   generateItems(terrain) {
     let items = [];
 
@@ -117,7 +161,7 @@ module.exports = {
       default:
         break;
     }
-    console.log(items);
+    //console.log(items);
     return items;
   },
 
@@ -174,62 +218,93 @@ module.exports = {
     ref.set(data);
   },
 
-  process(message, args) {
+  gotoWorldXY(pos, userData, message) {
+    userData.current = pos;
 
-    this.getUser(message.author.id,
+    this.saveUser(message.author.id, userData);
 
-      (userData) => {
-        this.getWorld(userData.current,
-          (worldData) => {
-            this.processMessage(userData, worldData, message, args);
-          },
-          () => { console.log("World reading error"); }
-        )
-      },
-      () => { console.log("User data reading error"); }
+    this.getWorld(userData.current,
+      (worldData) => { this.getInfo(userData, worldData, message) },
+      () => { console.log('World reading error'); }
     );
+  },
+  //#endregion
 
+  //#region SERVICES
+  getBuilding(id) {
+    let build = undefined;
+    this.buildings.forEach(element => {
+      if (element.id === id)
+        build = element;
+    });
+    return build;
+  },
+
+  getItem(id) {
+    let item = undefined;
+    this.items.forEach(element => {
+      if (element.id === id) {
+        item = element;
+      }
+    });
+
+    return item;
 
   },
 
-  processMessage(userData, worldData, message, args) {
-    if (args.length <= 1)
-      //TODO information
-      return this.getInfo(userData, worldData, message);
+  //#endregion
 
+  //#region INVENTORY
+  saveInventory(id, userData) {
 
-    if (args[1] === 'pick' || args[1] === 'p')
-      return this.pickItem(userData, worldData, message, args)
-
-    if (args[1] === 'inventory' || args[1] === 'i')
-      return this.showInventoy(userData, worldData, message);
-
-    if (args[1] === 'go' || args[1] === 'g')
-      return this.gotoWorld(userData, worldData, message, args);
-
-    if (args[1] === 'eat' || args[1] === 'e')
-      return this.eatItem(userData, message, args);
-
-    if (args[1] === 'build' || args[2] === 'b')
-      return this.build(userData, worldData, message, args);
-
+    const ref = this.database.ref(`viking/users/${id}/inventory`);
+    ref.set(userData.inventory);
+  },
+  countInventory(id, userData) {
+    let cnt = 0;
+    userData.inventory.forEach(item => {
+      if (item.id === id)
+        cnt += item.count;
+    });
+    return cnt;
   },
 
+  setInventory(id, count, userData) {
+    userData.inventory.forEach(item => {
+      if (item.id === id)
+        item.count += count;
+    });
+  },
+  //#endregion
+
+  //#region COMMANDS
   getInfo(userData, worldData, message) {
     var msg =
       `Tava atrašanās vieta: ${userData.current}\n` +
-      `Tu atrodies ${this.terrains[worldData.terrain].name}\n` +
-      (!worldData.buildings ?
-        `Te neatrodas nekādas būves` :
-        ``) + `\n`
+      `Tu atrodies ${this.terrains[worldData.terrain].name}\n`
       ;
+    if (!worldData.buildings)
+      msg += `Te neatrodas nekādas būves\n`;
+    else {
+      msg += `Te atrodas šādas ēkas:\n`;
+      worldData.buildings.forEach(build => {
+        //TODO: samainīt ar fetch user
+        const user = this.discord.users.cache.get(build.uid).username;
+        const b = this.getBuilding(build.id);
+        msg += `\t${b.name} ${build.id === 0 ? '(' + build.name + ')' : ''} no ${user}\n`;
+      });
+    }
     if (worldData.items) {
       //console.log(worldData.items);
-      msg += `Zemē mētājas:\n`;
+      let m = `Zemē mētājas:\n`;
+      let cnt = 0;
       worldData.items.forEach(item => {
+        cnt += item.count;
         if (item.count > 0)
-          msg += `\t${this.items[item.id].name}: ${item.count} gab\n`;
+          m += `\t${this.items[item.id].name}: ${item.count} gab\n`;
       });
+      if (cnt > 0)
+        msg += m;
     }
 
     message.channel.send(msg);
@@ -281,10 +356,10 @@ module.exports = {
       return message.channel.send(`Tev nepietiek lietas būvniecībai`);
 
 
-    let save = { uid: message.author.id, id: building.id };
+    let save = { uid: message.author.id, id: building.id, name: "" };
     if (building.id === 0) {
       if (args.length < 4)
-        return message.channel.send(`Šai ēkai ir jānorāda ēkas nosaukums`);
+        return message.channel.send(`Šai ēkai ir jānorāda nosaukums`);
       save.name = args[3];
     }
 
@@ -294,48 +369,21 @@ module.exports = {
     worldData.buildings.push(save);
 
     building.needs.forEach(need => {
-      this.setInventory(need.id, need.count);
+      this.setInventory(need.id, -need.count, userData);
     });
+
+    if (!userData.buildings)
+      userData.buildings = [];
+
+    userData.buildings.push({ pos: userData.current, id: building.id, name: save.name });
 
     this.saveUser(message.author.id, userData);
     this.saveWorld(userData.current, worldData);
-  },
 
-  countInventory(id, userData) {
-    let cnt = 0;
-    userData.inventory.forEach(item => {
-      if (item.id === id)
-        cnt += item.count;
-    });
-    return cnt;
-  },
-
-  setInventory(id, count, userData) {
-    userData.inventory.forEach(item => {
-      if (item.id === id)
-        item.count += count;
-    });
-  },
-
-  getBuilding(id) {
-    let build = undefined;
-    this.buildings.forEach(element => {
-      if (element.id === id)
-        build = element;
-    });
-    return build;
-  },
-
-  getItem(id) {
-    let item = undefined;
-    this.items.forEach(element => {
-      if (element.id === id) {
-        item = element;
-      }
-    });
-
-    return item;
-
+    message.channel.send(`Tu uzbūveji ${args[2]}\n`);
+    if (building.id === 0) {
+      message.channel.send(`Tagad vari izmantot teleportu ar nosaukumu ${args[3]}, lai ātri pārvietotos uz šo pazīciju`);
+    }
   },
 
   pickItem(userData, worldData, message, args) {
@@ -346,7 +394,7 @@ module.exports = {
 
     if (args[2] === 'all' || args[2] === 'a') {//Pickup all items
       let msg = `Tu pacēli:\n`;
-      worldData.items.forEach(item =>{
+      worldData.items.forEach(item => {
         this.setInventory(item.id, item.count, userData);
         const itm = this.getItem(item.id);
         msg += `\t${itm.name} ${item.count}\n`;
@@ -410,15 +458,18 @@ module.exports = {
 
   },
 
-  showInventoy(userData, worldData, message) {
+  showInventory(userData, worldData, message, args) {
     if (!userData.inventory) {
       message.channel.send("Tava soma ir tukša");
       return;
     }
     let msg = 'Somas saturs:\n';
     userData.inventory.forEach(item => {
+      //console.log(item)
+
       if (item.count > 0) {
-        msg += `\t${this.items[item.id].name}: ${item.count} gab \n`;
+        const itm = this.getItem(item.id);
+        msg += `\t${itm.name}: ${item.count} gab \n`;
       }
     });
 
@@ -459,25 +510,42 @@ module.exports = {
       return;
     }
 
-    userData.current = this.getWorldPos(pos.x, pos.y);
     userData.st--;
+    this.gotoWorldXY(this.getWorldPos(pos.x, pos.y), userData, message);
 
-    this.saveUser(message.author.id, userData);
-
-    this.getWorld(userData.current,
-      (worldData) => { this.getInfo(userData, worldData, message) },
-      () => { console.log('World reading error'); }
-    );
   },
 
-  eatItem(userData, message, args) {
+  teleport(userData, worldData, message, args) {
+    if (!userData.buildings)
+      return message.channel.send("Tev nav uzbūvēts neviens teleports");
+
+    if (args.length < 3)
+      return message.channel.send("Ieraksti teleporta nosaukumu uz kurieni vēlies doties");
+
+    let tel = undefined;
+    userData.buildings.forEach(build => {
+      if (build.id === 0 && build.name === args[2]) {
+        return tel = build;
+      }
+    });
+
+    if (!tel)
+      return message.channel.send(`Nav atrast teleports ar nosaukumu ${args[2]}`);
+
+    message.channel.send('Tu teleportējies');
+    this.gotoWorldXY(tel.pos, userData, message);
+
+  },
+
+  eatItem(userData, worldData, message, args) {
     if (args.length < 3)
       return message.channel.send('Ko tieši Tu vēlies apēst?');
 
     message.channel.send(`Tu apēdi ${args[2]}`);
   },
+  //#endregion
 
-  //===============================================
+  //#region UTILS
   getWorldPos(x, y) {
     return `${x}:${y}`;
   },
@@ -508,4 +576,5 @@ module.exports = {
 
     return this.getPerlinXY(x, y);
   },
+  //#endregion
 }
