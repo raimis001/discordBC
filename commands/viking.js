@@ -84,7 +84,7 @@ module.exports = {
 
     if (args[1] === 'build' || args[1] === 'b')
       return this.build(userData, worldData, message, args);
-    
+
     if (args[1] === 'chest' || args[1] === 'c')
       return this.chestShow(userData, worldData, message, args);
 
@@ -313,7 +313,7 @@ module.exports = {
   },
   countInventory(id, userData) {
     let cnt = 0;
-    
+
     userData.inventory.forEach(item => {
       if (item.id === id)
         cnt += item.count;
@@ -626,9 +626,22 @@ module.exports = {
     message.channel.send(`Tu apēdi ${args[2]}`);
   },
   chestShow(userData, worldData, message, args) {
+    function addToChest(id, count) {
+      let add = false;
+      chest.items.forEach(itm => {
+        if (itm.id === id) {
+          add = true;
+          itm.count += count;
+        }
+      });
+      if (!add) {
+        chest.items.push({ id: id, count: count });
+      }
+    }
+
     if (!worldData.buildings)
       return message.channel.send('Te neatrodas nevienas lādes!');
-    
+
     let chest = undefined;
     worldData.buildings.forEach(building => {
       if (building.id === 1)
@@ -646,34 +659,57 @@ module.exports = {
       msg += chest.locked ? '\taizlēgta\n' : '\tatslēgta\n';
       if (!chest.items)
         msg += '\tLāde ir tukša\n';
-        else {
-          let cnt = 0;
-          let m = "";
-          chest.items.forEach(item => {
-            const itm = this.getItem(item.id);
-            cnt += item.count;
-            if (item.count > 0)
-              m += `\t${itm.name} - ${item.count}\n`;
-          });
-          msg += (cnt > 0) ? m : '\tLāde ir tukša\n'
-        }
+      else {
+        let cnt = 0;
+        let m = "";
+        chest.items.forEach(item => {
+          const itm = this.getItem(item.id);
+          cnt += item.count;
+          if (item.count > 0)
+            m += `\t${itm.name} - ${item.count}\n`;
+        });
+        msg += (cnt > 0) ? m : '\tLāde ir tukša\n'
+      }
       return message.channel.send(msg);
     }
 
     if (args[2] === 'lock') {
       chest.locked = true;
-      this.saveWorldBuildings(userData.current,worldData.buildings);
+      this.saveWorldBuildings(userData.current, worldData.buildings);
       return message.channel.send('Tu aizslēdzi savu lādi, lai citi nevandās tajā!');
     }
     if (args[2] === 'unlock') {
       chest.locked = false;
-      this.saveWorldBuildings(userData.current,worldData.buildings);
+      this.saveWorldBuildings(userData.current, worldData.buildings);
       return message.channel.send('Tu atslēdzi savu lādi! Tagad ikviens no tās var kaut ko paņemt.');
     }
 
     if (args[2] === 'pick' || args[2] === 'p') {
       if (!chest.items)
         return message.channel.send('Lāde ir tukša, neko nevar izņemt');
+
+      if (args[3] === 'all' || args[3] === 'a') {
+        
+        let c = 0;
+        let m = `Tu paņēmi no lādes šādas lietas:\n`;
+        chest.items.forEach(citm => {
+          if (citm.count > 0) {
+            this.addInventory(userData, citm.id, citm.count);
+            const iitm = this.getItem(citm.id);
+            c += citm.count;
+            m += `\t${iitm.name} - ${citm.count}\n`
+            citm.count = 0;          
+          }
+
+        });
+        
+        this.saveInventory(message.author.id, userData);
+        this.saveWorldBuildings(userData.current, worldData.buildings);
+        if (c > 0)
+          return message.channel.send(m);
+
+        return message.channel.send(`Lādē nav lietu ko varētu paņemt`);
+      }
 
       if (!args[3])
         return message.channel.send('Jānorāda lietas nosaukums, ko vēlies paņemt.');
@@ -684,8 +720,8 @@ module.exports = {
 
       let item = undefined;
       chest.items.forEach(citm => {
-        if (citm.id == itm.id && citm.count > 0)
-          item == citm;
+        if (citm.id === itm.id && citm.count > 0)
+          item = citm;
       });
 
       if (!item)
@@ -695,11 +731,69 @@ module.exports = {
       if (count > item.count)
         count = item.count;
 
-      this.addInventory(userData, item.id, count);      
+      this.addInventory(userData, item.id, count);
+      addToChest(item.id, -count);
+
+      this.saveInventory(message.author.id, userData);
+      this.saveWorldBuildings(userData.current, worldData.buildings);
+      return message.channel.send(`Tu paņēmi no lādes ${count} gab ${args[3]}`);
+    }
+
+    if (args[2] === 'put' || args[2] == 'u') {
+
+      if (!args[3])
+        return message.channel.send('Jānorāda lietas nosaukums, ko vēlies ilikt lādē.');
+
+      if (args[3] === 'all' || args[3] === 'a') {
+        if (!userData.inventory)
+          return message.channel.send('Tev nav nekā somā');
+        let m = 'Tu ieliki lādē:\n';
+        let c = 0;
+        userData.inventory.forEach(item => {
+          if (item.count > 0) {
+            addToChest(item.id, item.count);
+            const itm = this.getItem(item.id);
+
+            m += `\t${itm.name}: ${item.count}\n`;
+            c += item.count;
+            item.count = 0;
+          }
+        });
+        this.saveInventory(message.author.id, userData);
+        this.saveWorldBuildings(userData.current, worldData.buildings);
+
+        if (c > 0)
+          return message.channel.send(m);
+
+        return message.channel.send('Tev nav lietu, ko ielikt lādē!');
+      }
+
+      let item = this.getItemByName(args[3]);
+      if (!item)
+        return message.channel.send(`Nepareizi ierakstīji lietas nosaukumu ${args[3]}`);
+
+      let cnt = this.countInventory(item.id, userData);
+      if (cnt < 1)
+        return message.channel.send(`Tev somā nav lietas ${args[3]}`);
+
+      let count = args[4] && !isNaN(args[4]) ? parseInt(args[4]) : cnt;
+      if (count < cnt)
+        count = cnt;
+
+      this.addInventory(userData, item.id, -count);
+      this.saveInventory(message.author.id, userData);
+
+      if (!chest.items)
+        chest.items = [];
+
+      addToChest(item.id, count);
+
+      this.saveWorldBuildings(userData.current, worldData.buildings);
+      return message.channel.send(`Tu ieliki ${count} gabalus  ${args[3]} lādē`);
     }
 
   },
- //#endregion
+  //#endregion
 
   //#region UTILS
   getWorldPos(x, y) {
