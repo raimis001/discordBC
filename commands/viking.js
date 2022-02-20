@@ -26,12 +26,13 @@ module.exports = {
   ],
 
   beasts: [
-    { id: 0, name: "deer", hp: 5, attack: 0, terrains: [1, 2, 3, 4] },
-    { id: 1, name: "woodenboy", hp: 10, attack: 1, terrains: [2, 3, 4, 5, 6] },
+    { id: 0, name: "deer", hp: 5, attack: 0, terrains: [1, 2, 3, 4], rnd: 5, msg: 'Tālumā Tu redzi ganāmies deer' },
+    { id: 1, name: "woodenboy", hp: 10, attack: 1, terrains: [2, 3, 4, 5, 6], rnd: 3, msg: 'Woodenboy kaut kur tuvumā izdod savas urkšķošās skaņas, vari uzbrukt viņam, vai doties tālāk' },
   ],
 
   buildings: [
     { id: 0, name: "stonepile", needs: [{ id: 1, count: 10 }] },
+    { id: 1, name: "chest", needs: [{ id: 0, count: 30 }, { id: 1, count: 5 }] },
   ],
 
   perlin: require(`../tools/perlin.js`),
@@ -41,11 +42,6 @@ module.exports = {
 
   init() {
     this.perlin.init();
-    // for (let i = 0; i < 10; i++) {
-    //   console.log(this.getPerlin(0+i, 5));
-    // }
-
-
   },
   //#region PROCESS MESSAGES
 
@@ -66,7 +62,6 @@ module.exports = {
 
 
   },
-
 
   processMessage(userData, worldData, message, args) {
     if (args.length <= 1)
@@ -89,11 +84,23 @@ module.exports = {
 
     if (args[1] === 'build' || args[1] === 'b')
       return this.build(userData, worldData, message, args);
+    
+    if (args[1] === 'chest' || args[1] === 'c')
+      return this.chestShow(userData, worldData, message, args);
 
   },
   //#endregion
 
   //#region USER DATA
+
+  upgradeUser(userData) {
+    if (!userData.hpMax)
+      userData.hpMax = 25;
+    if (!userData.stMax)
+      userData.stMax = 30;
+
+    return userData;
+  },
 
   newUser(id) {
     let x = this.getRandomInt(500, 5000);
@@ -103,6 +110,8 @@ module.exports = {
       current: `${x}:${y}`,
       hp: 25,
       st: 30,
+      hpMax: 25,
+      stMax: 30,
     };
     this.saveUser(id, userData);
     return userData;
@@ -113,7 +122,7 @@ module.exports = {
 
     ref.get().then((snapshot) => {
       if (snapshot.exists()) {
-        return callback(snapshot.val());
+        return callback(this.upgradeUser(snapshot.val()));
       }
 
       return callback(this.newUser(id));
@@ -136,7 +145,7 @@ module.exports = {
     let items = [];
 
     let r = this.getRandomInt(0, 10);
-    if (r > 3) {//Branch
+    if (r > 2) {//Branch
       let c = this.getRandomInt(1, 5);
       items.push({ id: 0, count: c })
     }
@@ -164,6 +173,18 @@ module.exports = {
     //console.log(items);
     return items;
   },
+  generateBeasts(terrain) {
+    let beast = [];
+    this.beasts.forEach(b => {
+      if (b.terrains.indexOf(terrain) > 0) {
+        const r = this.getRandomInt(0, 9);
+        if (r < b.rnd) {
+          beast.push({ id: b.id });
+        }
+      }
+    });
+    return beast;
+  },
 
   newWorld(pos) {
     const t = this.getPerlin(pos);
@@ -172,6 +193,7 @@ module.exports = {
       terrain: t,
       last: Date.now(),
       items: this.generateItems(t),
+      beasts: this.generateBeasts(t),
     };
     //console.log(data.items);
     this.saveWorld(pos, data);
@@ -188,6 +210,10 @@ module.exports = {
 
     data.last = tm;
     data.items = this.generateItems(data.terrain);
+    data.beasts = [];
+    if (!data.buildings)
+      data.beasts = this.generateBeasts(data.terrain);
+
     this.saveWorld(pos, data);
     return data;
   },
@@ -212,7 +238,11 @@ module.exports = {
     const ref = this.database.ref(`viking/world/${pos}`);
     ref.set(data);
   },
+  saveWorldBuildings(pos, data) {
+    const ref = this.database.ref(`viking/world/${pos}/buildings`);
+    ref.set(data);
 
+  },
   saveWorldItems(pos, data) {
     const ref = this.database.ref(`viking/world/${pos}/items`);
     ref.set(data);
@@ -252,6 +282,27 @@ module.exports = {
 
   },
 
+  getItemByName(name) {
+    let item = undefined;
+    this.items.forEach(element => {
+      if (element.name === name) {
+        item = element;
+      }
+    });
+
+    return item;
+
+  },
+
+  getBeast(id) {
+    let beast = undefined;
+    this.beasts.forEach(b => {
+      if (b.id == id)
+        beast = b;
+    });
+
+    return beast;
+  },
   //#endregion
 
   //#region INVENTORY
@@ -262,6 +313,7 @@ module.exports = {
   },
   countInventory(id, userData) {
     let cnt = 0;
+    
     userData.inventory.forEach(item => {
       if (item.id === id)
         cnt += item.count;
@@ -274,6 +326,22 @@ module.exports = {
       if (item.id === id)
         item.count += count;
     });
+  },
+  addInventory(userData, id, count) {
+    if (!userData.inventory) {
+      userData.inventory = [{ id: id, count: count }];
+    } else {
+      let add = false;
+      userData.inventory.forEach(item => {
+        if (item.id === id) {
+          item.count += count;
+          add = true;
+        }
+      });
+      if (!add) {
+        userData.inventory.push({ id: id, count: count });
+      }
+    }
   },
   //#endregion
 
@@ -294,17 +362,26 @@ module.exports = {
         msg += `\t${b.name} ${build.id === 0 ? '(' + build.name + ')' : ''} no ${user}\n`;
       });
     }
-    if (worldData.items) {
+    if (worldData.items && worldData.items.length > 0) {
       //console.log(worldData.items);
       let m = `Zemē mētājas:\n`;
       let cnt = 0;
       worldData.items.forEach(item => {
         cnt += item.count;
-        if (item.count > 0)
-          m += `\t${this.items[item.id].name}: ${item.count} gab\n`;
+        if (item.count > 0) {
+          const itm = this.getItem(item.id);
+          m += `\t${itm.name}: ${item.count} gab\n`;
+        }
       });
       if (cnt > 0)
         msg += m;
+    }
+
+    if (worldData.beasts && worldData.beasts.length > 0) {
+      worldData.beasts.forEach(beast => {
+        const b = this.getBeast(beast.id);
+        msg += b.msg + '\n';
+      });
     }
 
     message.channel.send(msg);
@@ -325,14 +402,13 @@ module.exports = {
       return message.channel.send(msg);
     }
 
-
-    let building = 0;
+    let building = undefined;
     this.buildings.forEach(b => {
       if (b.name === args[2])
         building = b;
     });
 
-    if (building === 0) {
+    if (!building) {
       let msg = `Tu nepareizi norādīji būvējamo ēku: ${args[2]}\n`;
       this.buildings.forEach(build => {
 
@@ -343,23 +419,36 @@ module.exports = {
         });
         msg += `\t${build.name} ${nds}\n`
       });
+      console.log("Wrong build name: " + args[2]);
       return message.channel.send(msg);
+    }
+
+    if (building.id === 0) {
+      if (worldData.buildings)
+        return message.channel.send('Tev jau ir uzbūvēts stonepile šajā sektorā');
+      if (args.length < 4)
+        return message.channel.send(`Šai ēkai ir jānorāda nosaukums`);
     }
 
     let canbuild = true;
     building.needs.forEach(need => {
-      if (this.countInventory(need.id, userData) < need.count)
+      const c = this.countInventory(need.id, userData);
+      if (c < need.count)
         canbuild = false;
     });
 
-    if (!canbuild)
-      return message.channel.send(`Tev nepietiek lietas būvniecībai`);
+    if (!canbuild) {
+      let msg = `Tev nepietiek lietas būvniecībai ${args[2]}\n`;
+      building.needs.forEach(need => {
+        const c = this.countInventory(need.id, userData);
+        const itm = this.getItem(need.id);
+        msg += `\t${itm.name} - ${need.count} (${c})\n`;
+      });
+      return message.channel.send(msg);
+    }
 
-
-    let save = { uid: message.author.id, id: building.id, name: "" };
+    let save = { uid: message.author.id, id: building.id, name: "", level: 1 };
     if (building.id === 0) {
-      if (args.length < 4)
-        return message.channel.send(`Šai ēkai ir jānorāda nosaukums`);
       save.name = args[3];
     }
 
@@ -372,8 +461,11 @@ module.exports = {
       this.setInventory(need.id, -need.count, userData);
     });
 
-    if (!userData.buildings)
+    if (!userData.buildings) {
+      if (building.id != 0)
+        return message.channel.send('Tev nav uzbūvēts stonepile un nevari būvet kaut ko citu');
       userData.buildings = [];
+    }
 
     userData.buildings.push({ pos: userData.current, id: building.id, name: save.name });
 
@@ -397,7 +489,9 @@ module.exports = {
       worldData.items.forEach(item => {
         this.setInventory(item.id, item.count, userData);
         const itm = this.getItem(item.id);
-        msg += `\t${itm.name} ${item.count}\n`;
+        const cnt = this.countInventory(item.id, userData) + item.count;
+
+        msg += `\t${itm.name} ${item.count} (${cnt})\n`;
         item.count = 0;
       });
       this.saveInventory(message.author.id, userData);
@@ -430,22 +524,7 @@ module.exports = {
       return;
     }
 
-    if (!userData.inventory) {
-      userData.inventory = [{ id: id, count: cnt }];
-    } else {
-      let add = false;
-      userData.inventory.forEach(item => {
-        if (item.id === id) {
-          item.count += cnt;
-          add = true;
-        }
-      });
-      if (!add) {
-        userData.inventory.push({ id: id, count: cnt });
-      }
-    }
-
-    this.saveInventory(message.author.id, userData);
+    this.addInventory(userData, id, cnt);
 
     worldData.items.forEach(item => {
       if (item.id === id) {
@@ -453,8 +532,11 @@ module.exports = {
       }
     });
 
+    this.saveInventory(message.author.id, userData);
     this.saveWorldItems(userData.current, worldData.items);
-    message.channel.send(`Tu pacēli ${cnt} ${args[2]}`);
+
+    const c = this.countInventory(id, userData)
+    message.channel.send(`Tu pacēli ${cnt} ${args[2]} (${c})`);
 
   },
 
@@ -543,7 +625,81 @@ module.exports = {
 
     message.channel.send(`Tu apēdi ${args[2]}`);
   },
-  //#endregion
+  chestShow(userData, worldData, message, args) {
+    if (!worldData.buildings)
+      return message.channel.send('Te neatrodas nevienas lādes!');
+    
+    let chest = undefined;
+    worldData.buildings.forEach(building => {
+      if (building.id === 1)
+        chest = building;
+    });
+
+    if (!chest)
+      return message.channel.send('Te neatrodas nevienas lādes!');
+
+    if (chest.uid != message.author.id && chest.locked)
+      return message.channel.send('Lāde Tev nepieder un tā ir slēgta!');
+
+    if (!args[2] || args[2] === 'info' || args[2] === 'i') {
+      let msg = 'Informācija par lādi:\n';
+      msg += chest.locked ? '\taizlēgta\n' : '\tatslēgta\n';
+      if (!chest.items)
+        msg += '\tLāde ir tukša\n';
+        else {
+          let cnt = 0;
+          let m = "";
+          chest.items.forEach(item => {
+            const itm = this.getItem(item.id);
+            cnt += item.count;
+            if (item.count > 0)
+              m += `\t${itm.name} - ${item.count}\n`;
+          });
+          msg += (cnt > 0) ? m : '\tLāde ir tukša\n'
+        }
+      return message.channel.send(msg);
+    }
+
+    if (args[2] === 'lock') {
+      chest.locked = true;
+      this.saveWorldBuildings(userData.current,worldData.buildings);
+      return message.channel.send('Tu aizslēdzi savu lādi, lai citi nevandās tajā!');
+    }
+    if (args[2] === 'unlock') {
+      chest.locked = false;
+      this.saveWorldBuildings(userData.current,worldData.buildings);
+      return message.channel.send('Tu atslēdzi savu lādi! Tagad ikviens no tās var kaut ko paņemt.');
+    }
+
+    if (args[2] === 'pick' || args[2] === 'p') {
+      if (!chest.items)
+        return message.channel.send('Lāde ir tukša, neko nevar izņemt');
+
+      if (!args[3])
+        return message.channel.send('Jānorāda lietas nosaukums, ko vēlies paņemt.');
+
+      let itm = this.getItemByName(args[3]);
+      if (!itm)
+        return message.channel.send(`Nepareizi ierakstīji lietas nosaukumu ${args[3]}`);
+
+      let item = undefined;
+      chest.items.forEach(citm => {
+        if (citm.id == itm.id && citm.count > 0)
+          item == citm;
+      });
+
+      if (!item)
+        return message.channel.send(`Lādē nav neviena ${args[3]}`);
+
+      let count = args[4] && !isNaN(args[4]) ? parseInt(args[4]) : item.count;
+      if (count > item.count)
+        count = item.count;
+
+      this.addInventory(userData, item.id, count);      
+    }
+
+  },
+ //#endregion
 
   //#region UTILS
   getWorldPos(x, y) {

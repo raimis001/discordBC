@@ -8,16 +8,16 @@ module.exports = {
     l: "═╬╠╣╔╗╚╝",
 
     victory: [
-        { line: "════", multi: 5 },
-        { line: "═╬╬═", multi: 10 },
-        { line: "╬══╬", multi: 20 },
-        { line: "╬╬╬╬", multi: 50 },
-        { line: "╠╬╬╣", multi: 50 },
-        { line: "╔══╗", multi: 30 },
-        { line: "╚══╝", multi: 30 },
-        { line: "╠══╣", multi: 40 },
-        { line: "╔╬╬╗", multi: 60 },
-        { line: "╚╬╬╝", multi: 60 },
+        { line: "════", multi: 3 },
+        { line: "═╬╬═", multi: 5 },
+        { line: "╬══╬", multi: 10 },
+        { line: "╬╬╬╬", multi: 25 },
+        { line: "╠╬╬╣", multi: 25 },
+        { line: "╔══╗", multi: 15 },
+        { line: "╚══╝", multi: 15 },
+        { line: "╠══╣", multi: 20 },
+        { line: "╔╬╬╗", multi: 30 },
+        { line: "╚╬╬╝", multi: 30 },
 
     ],
     rand: [
@@ -40,7 +40,7 @@ module.exports = {
 
             let usd = 1;
             if (!isNaN(args[1])) {
-                usd = parseFloat(args[1]);
+                usd = parseFloat(args[1]).toFixed(2);
                 if (usd < 1)
                 {
                     message.reply("Uzliec vismaz kaut kādu naudiņu!");
