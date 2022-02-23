@@ -32,7 +32,15 @@ module.exports = {
 
   buildings: [
     { id: 0, name: "stonepile", needs: [{ id: 1, count: 10 }] },
-    { id: 1, name: "chest", needs: [{ id: 0, count: 30 }, { id: 1, count: 5 }] },
+    { id: 1, name: "chest", needs: [{ id: 0, count: 20 }, { id: 1, count: 5 }] },
+    { id: 2, name: "shelter", needs: [{ id: 0, count: 30 }, { id: 1, count: 10 }] },
+    { id: 3, name: "bed", needs: [{ id: 0, count: 15 }] },
+    { id: 4, name: "workbench", needs: [{ id: 0, count: 10 }, { id: 1, count: 5 }] }
+  ],
+
+  tools: [
+    { id: 0, name: "axe", type: 0, needs: [{ id: 0, count: 3 }, { id: 1, count: 1 }] },
+    { id: 1, name: "bow", type: 1, needs: [{ id: 0, count: 5 }] }
   ],
 
   perlin: require(`../tools/perlin.js`),
@@ -70,7 +78,7 @@ module.exports = {
     if (args[1] === 'pick' || args[1] === 'p')
       return this.pickItem(userData, worldData, message, args)
 
-    if (args[1] === 'inventory' || args[1] === 'i')
+    if (args[1] === 'info' || args[1] === 'i')
       return this.showInventory(userData, worldData, message);
 
     if (args[1] === 'go' || args[1] === 'g')
@@ -80,7 +88,7 @@ module.exports = {
       return this.teleport(userData, worldData, message, args);
 
     if (args[1] === 'eat' || args[1] === 'e')
-      return this.eatItem(userData, message, args);
+      return this.eatItem(userData, worldData, message, args);
 
     if (args[1] === 'build' || args[1] === 'b')
       return this.build(userData, worldData, message, args);
@@ -173,6 +181,7 @@ module.exports = {
     //console.log(items);
     return items;
   },
+
   generateBeasts(terrain) {
     let beast = [];
     this.beasts.forEach(b => {
@@ -209,10 +218,12 @@ module.exports = {
       return data;
 
     data.last = tm;
-    data.items = this.generateItems(data.terrain);
+    data.items = [];
     data.beasts = [];
-    if (!data.buildings)
+    if (!data.buildings) {
       data.beasts = this.generateBeasts(data.terrain);
+      data.items = this.generateItems(data.terrain);
+    }
 
     this.saveWorld(pos, data);
     return data;
@@ -238,11 +249,13 @@ module.exports = {
     const ref = this.database.ref(`viking/world/${pos}`);
     ref.set(data);
   },
+
   saveWorldBuildings(pos, data) {
     const ref = this.database.ref(`viking/world/${pos}/buildings`);
     ref.set(data);
 
   },
+
   saveWorldItems(pos, data) {
     const ref = this.database.ref(`viking/world/${pos}/items`);
     ref.set(data);
@@ -349,7 +362,9 @@ module.exports = {
   getInfo(userData, worldData, message) {
     var msg =
       `Tava atrašanās vieta: ${userData.current}\n` +
-      `Tu atrodies ${this.terrains[worldData.terrain].name}\n`
+      `Tu atrodies ${this.terrains[worldData.terrain].name}\n` +
+      `Hp - ${userData.hp}\n` +
+      `Stamina - ${userData.st}\n`
       ;
     if (!worldData.buildings)
       msg += `Te neatrodas nekādas būves\n`;
@@ -623,8 +638,46 @@ module.exports = {
     if (args.length < 3)
       return message.channel.send('Ko tieši Tu vēlies apēst?');
 
-    message.channel.send(`Tu apēdi ${args[2]}`);
+    const food = this.getItemByName(args[2]);
+    if (!food)
+      return message.channel.send('Nepareizi norādīts ēdiena nosaukums!');
+
+    if (food.type != 1)
+      return message.channel.send(`${args[2]} nav ēdiens!`);
+
+    const c = this.countInventory(food.id, userData);
+    if (c < 1)
+      return message.channel.send(`Tev somā nav neviena ${args[2]}!`);
+
+    let count = 1;
+    if (args[3] && !isNaN(args[3])) {
+      count = parseInt(args[3]);
+      if (count > c)
+        count = c;
+    }
+
+    for (let i = 0; i < count; i++) {
+      userData.hp += food.effect.hp;
+      userData.st += food.effect.st;
+    }
+
+    if (userData.hp > userData.hpMax)
+      userData.hp = userData.hpMax;
+    if (userData.st > userData.stMax)
+      userData.st = userData.stMax;
+
+    this.addInventory(userData, food.id, -count);
+
+    this.saveUser(message.author.id, userData);
+
+    const msg = 
+      `Tu apēdi ${count} ${args[2]}\n` +
+      `\tHP - ${userData.hp}\n` +
+      `\tStamina - ${userData.st}\n`
+
+    message.channel.send(msg);
   },
+
   chestShow(userData, worldData, message, args) {
     function addToChest(id, count) {
       let add = false;
@@ -674,11 +727,17 @@ module.exports = {
     }
 
     if (args[2] === 'lock') {
+      if (chest.uid != message.author.id)
+        return message.channel.send('Tev nepieder šī lāde, nevari to aizslegt');
+
       chest.locked = true;
       this.saveWorldBuildings(userData.current, worldData.buildings);
       return message.channel.send('Tu aizslēdzi savu lādi, lai citi nevandās tajā!');
     }
     if (args[2] === 'unlock') {
+      if (chest.uid != message.author.id)
+        return message.channel.send('Tev nepieder šī lāde, nevari to aizslegt');
+
       chest.locked = false;
       this.saveWorldBuildings(userData.current, worldData.buildings);
       return message.channel.send('Tu atslēdzi savu lādi! Tagad ikviens no tās var kaut ko paņemt.');
@@ -689,7 +748,7 @@ module.exports = {
         return message.channel.send('Lāde ir tukša, neko nevar izņemt');
 
       if (args[3] === 'all' || args[3] === 'a') {
-        
+
         let c = 0;
         let m = `Tu paņēmi no lādes šādas lietas:\n`;
         chest.items.forEach(citm => {
@@ -698,11 +757,11 @@ module.exports = {
             const iitm = this.getItem(citm.id);
             c += citm.count;
             m += `\t${iitm.name} - ${citm.count}\n`
-            citm.count = 0;          
+            citm.count = 0;
           }
 
         });
-        
+
         this.saveInventory(message.author.id, userData);
         this.saveWorldBuildings(userData.current, worldData.buildings);
         if (c > 0)
