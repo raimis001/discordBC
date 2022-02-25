@@ -35,12 +35,14 @@ module.exports = {
     { id: 1, name: "chest", needs: [{ id: 0, count: 20 }, { id: 1, count: 5 }] },
     { id: 2, name: "shelter", needs: [{ id: 0, count: 30 }, { id: 1, count: 10 }] },
     { id: 3, name: "bed", needs: [{ id: 0, count: 15 }] },
-    { id: 4, name: "workbench", needs: [{ id: 0, count: 10 }, { id: 1, count: 5 }] }
+    { id: 4, name: "workbench", needs: [{ id: 0, count: 10 }, { id: 1, count: 5 }] },
   ],
 
   tools: [
-    { id: 0, name: "axe", type: 0, needs: [{ id: 0, count: 3 }, { id: 1, count: 1 }], dmg: 10 },
-    { id: 1, name: "bow", type: 1, needs: [{ id: 0, count: 5 }], dmg: 10 }
+    { id: 0, name: "axe", type: 0, needs: [{ id: 0, count: 3 }, { id: 1, count: 1 }], dmg: 10, count: 1 },
+    { id: 1, name: "bow", type: 1, needs: [{ id: 0, count: 5 }], dmg: 10, count: 1 },
+    { id: 2, name: "woodenarrows", type: 2, needs: [{id: 0, count: 5}], count: 20},
+    { id: 3, name: "stonearrows", type: 2, needs: [{id: 0, count: 2}, {id: 1, count: 5}], count: 20},
   ],
 
   perlin: require(`../tools/perlin.js`),
@@ -593,7 +595,11 @@ module.exports = {
       msg = `Tev ir šādi ieroči:\n`;
       userData.tools.forEach(t => {
         const tool = this.getTool(t.id);
-        msg += `\t${tool.name} līmenis: ${t.level} stiprība: ${t.hp}%\n`;
+        let c = '';
+        if (t.count && t.count > 1)
+          c = `skaits: ${t.count}`;
+
+        msg += `\t${tool.name} līmenis: ${t.level} stiprība: ${t.hp}% ${c}\n`;
       });
     } else {
       msg += `Tev nav ieroču un instrumentu\n`;
@@ -619,7 +625,7 @@ module.exports = {
       msg += m;
     else 
       msg += `Tava soma ir tukša`;
-      
+
     message.channel.send(msg);
   },
 
@@ -922,7 +928,7 @@ module.exports = {
     if (!tool)
       return message.channel.send(`Tu neparezi norādīji lietas nosaukumu ${args[2]}`);
 
-    if (this.getToolUser(tool.id, userData))
+    if (tool.type != 3 && this.getToolUser(tool.id, userData))
       return message.channel.send(`Tev jau ir izgatavots ${args[2]}`);
 
     let canCraft = true;
@@ -946,7 +952,16 @@ module.exports = {
     if (!userData.tools)
       userData.tools = [];
 
-    userData.tools.push({id: tool.id, level: 1, hp: 100});
+    let add = false;
+    userData.tools.forEach(t => {
+      if (t.id === tool.id) {
+        t.count += tool.count;
+        add = true;
+      }
+    });
+
+    if (!add)
+      userData.tools.push({id: tool.id, level: 1, hp: 100, count: tool.count});
 
     tool.needs.forEach(need => {
       this.addInventory(userData, need.id, -need.count);
@@ -954,7 +969,7 @@ module.exports = {
 
     this.saveUser(message.author.id, userData);
 
-    return message.channel.send(`Tu izgatavoji instrumentu ${args[2]}`);
+    return message.channel.send(`Tu izgatavoji ${args[2]}`);
   },
   //#endregion
 
