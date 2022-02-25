@@ -39,8 +39,8 @@ module.exports = {
   ],
 
   tools: [
-    { id: 0, name: "axe", type: 0, needs: [{ id: 0, count: 3 }, { id: 1, count: 1 }] },
-    { id: 1, name: "bow", type: 1, needs: [{ id: 0, count: 5 }] }
+    { id: 0, name: "axe", type: 0, needs: [{ id: 0, count: 3 }, { id: 1, count: 1 }], dmg: 10 },
+    { id: 1, name: "bow", type: 1, needs: [{ id: 0, count: 5 }], dmg: 10 }
   ],
 
   perlin: require(`../tools/perlin.js`),
@@ -95,6 +95,9 @@ module.exports = {
 
     if (args[1] === 'chest' || args[1] === 'c')
       return this.chestShow(userData, worldData, message, args);
+
+    if (args[1] === 'craft' || args[1] === 'r')
+      return this.crafting(userData, worldData, message, args);
 
   },
   //#endregion
@@ -307,6 +310,40 @@ module.exports = {
 
   },
 
+  getToolByName(name) {
+    let item = undefined;
+    this.tools.forEach(element => {
+      if (element.name === name) {
+        item = element;
+      }
+    });
+
+    return item;
+  },
+
+  getTool(id) {
+    let tool = undefined;
+    this.tools.forEach(t => {
+      if (t.id === id)
+        tool = t;
+    });
+
+    return tool;
+  },
+
+  getToolUser(id, userData) {
+    if (!userData.tools)
+      return undefined;
+
+    let tool = undefined;
+    userData.tools.forEach(t => {
+      if (t.id === id)
+        tool = t;
+    });
+
+    return tool;
+  },
+
   getBeast(id) {
     let beast = undefined;
     this.beasts.forEach(b => {
@@ -334,12 +371,6 @@ module.exports = {
     return cnt;
   },
 
-  setInventory(id, count, userData) {
-    userData.inventory.forEach(item => {
-      if (item.id === id)
-        item.count += count;
-    });
-  },
   addInventory(userData, id, count) {
     if (!userData.inventory) {
       userData.inventory = [{ id: id, count: count }];
@@ -473,7 +504,7 @@ module.exports = {
     worldData.buildings.push(save);
 
     building.needs.forEach(need => {
-      this.setInventory(need.id, -need.count, userData);
+      this.addInventory(userData, need.id, -need.count );
     });
 
     if (!userData.buildings) {
@@ -502,9 +533,9 @@ module.exports = {
     if (args[2] === 'all' || args[2] === 'a') {//Pickup all items
       let msg = `Tu pacēli:\n`;
       worldData.items.forEach(item => {
-        this.setInventory(item.id, item.count, userData);
+        this.addInventory(userData, item.id, item.count);
         const itm = this.getItem(item.id);
-        const cnt = this.countInventory(item.id, userData) + item.count;
+        const cnt = this.countInventory(item.id, userData);
 
         msg += `\t${itm.name} ${item.count} (${cnt})\n`;
         item.count = 0;
@@ -556,20 +587,39 @@ module.exports = {
   },
 
   showInventory(userData, worldData, message, args) {
+
+    let msg = '';
+    if (userData.tools) {
+      msg = `Tev ir šādi ieroči:\n`;
+      userData.tools.forEach(t => {
+        const tool = this.getTool(t.id);
+        msg += `\t${tool.name} līmenis: ${t.level} stiprība: ${t.hp}%\n`;
+      });
+    } else {
+      msg += `Tev nav ieroču un instrumentu\n`;
+    }
+
     if (!userData.inventory) {
-      message.channel.send("Tava soma ir tukša");
+      msg += "Tava soma ir tukša";
+      message.channel.send(msg);
       return;
     }
-    let msg = 'Somas saturs:\n';
-    userData.inventory.forEach(item => {
-      //console.log(item)
 
+    let m = 'Somas saturs:\n';
+    let c = 0;
+    userData.inventory.forEach(item => {
+      c += item.count;
       if (item.count > 0) {
         const itm = this.getItem(item.id);
-        msg += `\t${itm.name}: ${item.count} gab \n`;
+        m += `\t${itm.name}: ${item.count} gab \n`;
       }
     });
 
+    if (c > 0)
+      msg += m;
+    else 
+      msg += `Tava soma ir tukša`;
+      
     message.channel.send(msg);
   },
 
@@ -670,7 +720,7 @@ module.exports = {
 
     this.saveUser(message.author.id, userData);
 
-    const msg = 
+    const msg =
       `Tu apēdi ${count} ${args[2]}\n` +
       `\tHP - ${userData.hp}\n` +
       `\tStamina - ${userData.st}\n`
@@ -851,6 +901,60 @@ module.exports = {
       return message.channel.send(`Tu ieliki ${count} gabalus  ${args[3]} lādē`);
     }
 
+  },
+
+  crafting(userData, worldData, message, args) {
+    if (args.length < 3)
+      return message.channel.send('Norādi lietas nosaukumu, ko vēlies izveidot!');
+
+    if (!worldData.buildings)
+      return message.channel.send('Te neatrodas workbench! Varbūt uzbēvē.');
+
+    let work = undefined;
+    worldData.buildings.forEach(building => {
+      if (building.id === 4)
+        work = building;
+    });
+    if (!work)
+      return message.channel.send('Te neatrodas workbench! Varbūt uzbēvē.');
+
+    const tool = this.getToolByName(args[2]);
+    if (!tool)
+      return message.channel.send(`Tu neparezi norādīji lietas nosaukumu ${args[2]}`);
+
+    if (this.getToolUser(tool.id, userData))
+      return message.channel.send(`Tev jau ir izgatavots ${args[2]}`);
+
+    let canCraft = true;
+    tool.needs.forEach(need => {
+      if (this.countInventory(need.id, userData) < need.count)
+        canCraft = false;
+    });
+    //TODO apvienot chest un inventory
+    
+    if (!canCraft) {
+      //TODO: papildināt msg ar trūkstošām lietām
+      let msg = `Tev nepietiek lietu lai izgatavotu ${args[2]}\n`;
+      tool.needs.forEach(need => {
+        const itm = this.getItem(need.id);
+        const inv = this.countInventory(need.id, userData);
+        msg += `\t${itm.name}: ${need.cnt} (${inv.count})\n`;
+      });
+      return message.channel.send(msg);
+    }
+
+    if (!userData.tools)
+      userData.tools = [];
+
+    userData.tools.push({id: tool.id, level: 1, hp: 100});
+
+    tool.needs.forEach(need => {
+      this.addInventory(userData, need.id, -need.count);
+    });
+
+    this.saveUser(message.author.id, userData);
+
+    return message.channel.send(`Tu izgatavoji instrumentu ${args[2]}`);
   },
   //#endregion
 
