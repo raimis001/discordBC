@@ -373,6 +373,9 @@ module.exports = {
 
     return beast;
   },
+  calcLevel(level) {
+    return 1 + Math.log(level);
+  },
   //#endregion
 
   //#region INVENTORY
@@ -381,6 +384,7 @@ module.exports = {
     const ref = this.database.ref(`viking/users/${id}/inventory`);
     ref.set(userData.inventory);
   },
+
   countInventory(id, userData) {
     let cnt = 0;
 
@@ -390,6 +394,7 @@ module.exports = {
     });
     return cnt;
   },
+
   countAll(id, userData, worldData) {
     let cnt = this.countInventory(id, userData);
     
@@ -451,7 +456,7 @@ module.exports = {
           item.count = 0;
       }
     });
-    
+
     //console.log(`Finish chest`)
   },
   //#endregion
@@ -1037,7 +1042,38 @@ module.exports = {
   },
 
   attack(userData, worldData, message, args) {
+    if (!worldData.beasts)
+      return message.channel.send(`Tuvumā nav ienaidnieku, kam uzbrukt`);
 
+      if (args.length < 3)
+      return message.channel.send('Norādi ieroci ar ko uzbrukt!');
+   
+    const tool = this.getToolByName(args[2]);
+    if (!tool)
+      return message.channel.send(`Neparezi norādīts ieroča nosaukums ${args[2]}`);
+
+    const wpn = [0,1];
+    if (wpn.indexOf(tool.type) < 0)
+      return message.channel.send(`${args[2]} nav ierocis`);
+
+    const weapon = this.findTool(tool.id, userData);
+    if (!weapon)
+      return message.channel.send(`Tev nav izgatavots ${args[2]}`);
+
+    if (weapon.hp < 1)
+      return message.channel.send(`Ierocis ${args[2]} ir sabojājies, salabo to būvnīcā!`);
+
+    worldData.beasts.forEach(beast => {
+      const b = this.getBeast(beast.id);
+      if (!beast.hp) 
+        beast.hp = b.hp;
+      
+      if (beast.hp <= 0)
+        return;
+
+      beast.hp -= tool.dmg * this.calcLevel(weapon.level);
+    });
+    
   },
   //#endregion
 
