@@ -333,7 +333,7 @@ module.exports = {
                     data.usd -= usd;
                     data.bc += bc;
                     this.saveUser(message.author.id, data);
-                    text = `Tu nopirki ${bc.toFixed(4)} BC pa ${usd.toFixed(2)}`;
+                    text = `Tu nopirki ${bc.toFixed(4)} BC par ${usd.toFixed(2)}`;
                 }
             }
         }

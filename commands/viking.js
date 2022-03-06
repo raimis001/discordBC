@@ -9,6 +9,9 @@ module.exports = {
     { id: 0, name: "wood", type: 0 },
     { id: 1, name: "stone", type: 0 },
     { id: 2, name: "berries", type: 1, effect: { hp: 10, st: 10 } },
+    { id: 3, name: "skin", type: 0 },
+    { id: 4, name: "bone", type: 0 },
+    { id: 5, name: "meat", type: 2 },
   ],
 
   terrains: [
@@ -26,8 +29,8 @@ module.exports = {
   ],
 
   beasts: [
-    { id: 0, name: "deer", hp: 5, attack: 0, terrains: [1, 2, 3, 4], rnd: 5, msg: 'Tālumā Tu redzi ganāmies deer' },
-    { id: 1, name: "woodenboy", hp: 10, attack: 1, terrains: [2, 3, 4, 5, 6], rnd: 3, msg: 'Woodenboy kaut kur tuvumā izdod savas urkšķošās skaņas, vari uzbrukt viņam, vai doties tālāk' },
+    { id: 0, name: "deer", hp: 5, attack: 0, terrains: [1, 2, 3, 4], rnd: 5, reward: [{id: 3, count: 1},{id: 4, count: 2}, {id: 5, count: 3}], msg: 'Tālumā Tu redzi ganāmies deer' },
+    { id: 1, name: "woodenboy", hp: 10, attack: 1, terrains: [2, 3, 4, 5, 6], rnd: 3, reward: [{id: 0, count: 2}], msg: 'Woodenboy kaut kur tuvumā izdod savas urkšķošās skaņas, vari uzbrukt viņam, vai doties tālāk' },
   ],
 
   buildings: [
@@ -39,8 +42,8 @@ module.exports = {
   ],
 
   tools: [
-    { id: 0, name: "axe", type: 0, needs: [{ id: 0, count: 3 }, { id: 1, count: 1 }], dmg: 10, count: 1 },
-    { id: 1, name: "bow", type: 1, needs: [{ id: 0, count: 5 }], dmg: 10, count: 1 },
+    { id: 0, name: "axe", type: 0, needs: [{ id: 0, count: 3 }, { id: 1, count: 1 }], dmg: 10, count: 1, st: 3 },
+    { id: 1, name: "bow", type: 1, needs: [{ id: 0, count: 5 }], dmg: 10, count: 1, st: 2 },
     { id: 2, name: "woodenarrows", type: 2, needs: [{id: 0, count: 5}], count: 20},
     { id: 3, name: "stonearrows", type: 2, needs: [{id: 0, count: 2}, {id: 1, count: 5}], count: 20},
   ],
@@ -373,9 +376,11 @@ module.exports = {
 
     return beast;
   },
-  calcLevel(level) {
-    return 1 + Math.log(level);
+
+  dead(message, userData, worldData, msg) {
+
   },
+
   //#endregion
 
   //#region INVENTORY
@@ -1045,7 +1050,7 @@ module.exports = {
     if (!worldData.beasts)
       return message.channel.send(`Tuvumā nav ienaidnieku, kam uzbrukt`);
 
-      if (args.length < 3)
+    if (args.length < 3)
       return message.channel.send('Norādi ieroci ar ko uzbrukt!');
    
     const tool = this.getToolByName(args[2]);
@@ -1063,6 +1068,12 @@ module.exports = {
     if (weapon.hp < 1)
       return message.channel.send(`Ierocis ${args[2]} ir sabojājies, salabo to būvnīcā!`);
 
+    if (userData.st < tool.st)
+      return message.channel.send(`Tev nepietiek spēka (${userData.st}), lai lietotu ${args[2]} (${tool.st})`);
+
+    userData.st -= tool.st;
+    
+    let msg = "";
     worldData.beasts.forEach(beast => {
       const b = this.getBeast(beast.id);
       if (!beast.hp) 
@@ -1071,9 +1082,37 @@ module.exports = {
       if (beast.hp <= 0)
         return;
 
-      beast.hp -= tool.dmg * this.calcLevel(weapon.level);
+      beast.hp -= (tool.dmg * this.calcLevel(weapon.level)).toFixed(2);
+      msg += `Tu uzbruki ${b.name} ar ${args[2]}\n`;
+      if (beast.hp <= 0)
+      {
+        msg += `Tu nogalināji ${b.name} un ieguvi:\n`;
+        b.reward.forEach(rew => {
+          this.addInventory(userData, rew.id, rew.count);
+          const itm = this.getItem(rew.id);
+          msg += `\t${itm.name}: ${rew.count}\n`;
+        });
+      } else {
+        //TODO beast attack
+        msg += `Tu ievainoji ${args[2]} - dzīvība: ${beast.hp} \n`;
+        if (b.attack > 0)
+        {
+          //TODO calculate defence
+          userData.hp -= b.attack;
+          msg += `${args[2]} dod atbildes sitienu, Tev palika ${userData.hp} dzīvības\n`;
+        }
+      }
     });
-    
+
+    if (userData.hp <= 0)
+      return this.dead(message, userData, worldData, msg);
+
+
+    this.saveUser(message.author.id, userData);
+    this.saveWorld(userData.current, worldData);
+
+    return message.channel.send(msg);
+
   },
   //#endregion
 
@@ -1108,5 +1147,10 @@ module.exports = {
 
     return this.getPerlinXY(x, y);
   },
+
+  calcLevel(level) {
+    return Math.sqrt(Math.floor(level));
+  },
+
   //#endregion
 }
