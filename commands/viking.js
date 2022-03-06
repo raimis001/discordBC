@@ -29,8 +29,8 @@ module.exports = {
   ],
 
   beasts: [
-    { id: 0, name: "deer", hp: 5, attack: 0, terrains: [1, 2, 3, 4], rnd: 5, reward: [{id: 3, count: 1},{id: 4, count: 2}, {id: 5, count: 3}], msg: 'Tālumā Tu redzi ganāmies deer' },
-    { id: 1, name: "woodenboy", hp: 10, attack: 1, terrains: [2, 3, 4, 5, 6], rnd: 3, reward: [{id: 0, count: 2}], msg: 'Woodenboy kaut kur tuvumā izdod savas urkšķošās skaņas, vari uzbrukt viņam, vai doties tālāk' },
+    { id: 0, name: "deer", hp: 5, attack: 0, type: [1], terrains: [1, 2, 3, 4], rnd: 5, reward: [{id: 3, count: 1},{id: 4, count: 2}, {id: 5, count: 3}], msg: 'Tālumā Tu redzi ganāmies deer' },
+    { id: 1, name: "woodenboy", hp: 10, attack: 1, type: [0,1], terrains: [2, 3, 4, 5, 6], rnd: 3, reward: [{id: 0, count: 2}], msg: 'Woodenboy kaut kur tuvumā izdod savas urkšķošās skaņas, vari uzbrukt viņam, vai doties tālāk' },
   ],
 
   buildings: [
@@ -44,8 +44,7 @@ module.exports = {
   tools: [
     { id: 0, name: "axe", type: 0, needs: [{ id: 0, count: 3 }, { id: 1, count: 1 }], dmg: 10, count: 1, st: 3 },
     { id: 1, name: "bow", type: 1, needs: [{ id: 0, count: 5 }], dmg: 10, count: 1, st: 2 },
-    { id: 2, name: "woodenarrows", type: 2, needs: [{id: 0, count: 5}], count: 20},
-    { id: 3, name: "stonearrows", type: 2, needs: [{id: 0, count: 2}, {id: 1, count: 5}], count: 20},
+    { id: 2, name: "arrows", type: 2, needs: [{id: 0, count: 5}], count: 20},
   ],
 
   perlin: require(`../tools/perlin.js`),
@@ -1082,7 +1081,25 @@ module.exports = {
       if (beast.hp <= 0)
         return;
 
+      if (b.type.indexOf(tool.type) < 0)
+      {
+        msg += `Ierocis ${args[2]} nenodara kaitējumu ${b.name}\n`;
+        return;
+      }
+
+      if (tool.type === 1) //BOW attack, check arrows
+      {
+        if (this.countInventory(2, userData) < 1)
+        {
+          msg += `Tev nepietk bultas, lai uzbruktu ${b.name}\n`;
+          return;
+        }
+        this.addInventory(userData, 2, -1);
+      }
+
       beast.hp -= (tool.dmg * this.calcLevel(weapon.level)).toFixed(2);
+       
+
       msg += `Tu uzbruki ${b.name} ar ${args[2]}\n`;
       if (beast.hp <= 0)
       {
