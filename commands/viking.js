@@ -6,9 +6,9 @@ module.exports = {
   discord: 0,
 
   items: [
-    { id: 0, name: "wood", type: 0 },
-    { id: 1, name: "stone", type: 0 },
-    { id: 2, name: "berries", type: 1, effect: { hp: 10, st: 10 } },
+    { id: 0, name: "wood", type: 0, random: { terrains: [1, 2, 3, 4, 5], prc: 3, max: 5 } },
+    { id: 1, name: "stone", type: 0, random: { terrains: [1, 2, 3, 4, 5, 8, 9], prc: 2, max: 5 } },
+    { id: 2, name: "berries", type: 1, effect: { hp: 10, st: 10 }, random: { terrains: [1, 2, 3, 4, 5], prc: 1, max: 5 } },
     { id: 3, name: "skin", type: 0 },
     { id: 4, name: "bone", type: 0 },
     { id: 5, name: "meat", type: 2 },
@@ -16,7 +16,7 @@ module.exports = {
   ],
 
   recepies: [
-    { id: 1, name: "roast", result: [{id: 6, count: 1}], building: 5, needs: [{ id: 5, count: 1 }, { id: 0, count: 2 }] }
+    { id: 1, name: "roast", result: [{ id: 6, count: 1 }], building: 5, needs: [{ id: 5, count: 1 }, { id: 0, count: 2 }] }
   ],
 
   terrains: [
@@ -170,34 +170,24 @@ module.exports = {
 
   //#region WORLD DATA
   generateItems(terrain) {
+
     let items = [];
 
-    let r = this.getRandomInt(0, 10);
-    if (r > 2) {//Branch
-      let c = this.getRandomInt(1, 5);
-      items.push({ id: 0, count: c })
-    }
-    r = this.getRandomInt(0, 10);
-    if (r > 3) {//stone
-      let c = this.getRandomInt(1, 5);
-      items.push({ id: 1, count: c })
-    }
+    this.items.forEach(item => {
+      if (!item.random)
+        return;
 
-    switch (terrain) {
-      case 1:
-      case 2:
-      case 3:
-        //PĻAVAS
-        r = this.getRandomInt(0, 10);
-        if (r > 4) {//berries
-          let c = this.getRandomInt(1, 5);
-          items.push({ id: 2, count: c })
-        }
-        break;
+      if (item.random.terrains.indexOf(terrain) < 0)
+        return;
 
-      default:
-        break;
-    }
+      if (this.getRandomInt(0, 10) < item.random.prc)
+        return;
+
+      let c = this.getRandomInt(1, item.random.max);
+
+      items.push({ id: item.id, count: c })
+    });
+
     //console.log(items);
     return items;
   },
@@ -478,8 +468,8 @@ module.exports = {
     var msg =
       `Tava atrašanās vieta: ${userData.current}\n` +
       `Tu atrodies ${this.terrains[worldData.terrain].name}\n` +
-      `Hp - ${userData.hp}\n` +
-      `Stamina - ${userData.st}\n`
+      `Hp - ${userData.hp} (${userData.hpMax}) ` + this.getProgress(userData.hp,userData.hpMax) + `\n` +
+      `Stamina - ${userData.st} (${userData.stMax}) `+ this.getProgress(userData.st,userData.stMax) + `\n`
       ;
     if (!worldData.buildings)
       msg += `Te neatrodas nekādas būves\n`;
@@ -553,16 +543,17 @@ module.exports = {
       return message.channel.send(msg);
     }
 
-    if (building.id === 0) {
-      if (worldData.buildings)
-        return message.channel.send('Tev jau ir uzbūvēts stonepile šajā sektorā');
-      if (args.length < 4)
-        return message.channel.send(`Šai ēkai ir jānorāda nosaukums`);
-    }
+    const b = this.findBuilding(building.id, worldData);
+    if (b)
+      return message.channel.send(`Tev jau ir uzbūvēts ${building.name} šajā sektorā`);
+
+    if (building.id === 0 && args.length < 4)
+      return message.channel.send(`Šai ēkai ir jānorāda nosaukums`);
+
 
     let canbuild = true;
     building.needs.forEach(need => {
-      const c = this.countInventory(need.id, userData);
+      const c = this.countAll(need.id, userData, worldData);
       if (c < need.count)
         canbuild = false;
     });
@@ -570,7 +561,7 @@ module.exports = {
     if (!canbuild) {
       let msg = `Tev nepietiek lietas būvniecībai ${args[2]}\n`;
       building.needs.forEach(need => {
-        const c = this.countInventory(need.id, userData);
+        const c = this.countAll(need.id, userData, worldData);
         const itm = this.getItem(need.id);
         msg += `\t${itm.name} - ${need.count} (${c})\n`;
       });
@@ -587,17 +578,18 @@ module.exports = {
 
     worldData.buildings.push(save);
 
-    building.needs.forEach(need => {
-      this.addInventory(userData, need.id, -need.count);
-    });
 
     if (!userData.buildings) {
       if (building.id != 0)
         return message.channel.send('Tev nav uzbūvēts stonepile un nevari būvet kaut ko citu');
       userData.buildings = [];
     }
-
     userData.buildings.push({ pos: userData.current, id: building.id, name: save.name });
+
+    building.needs.forEach(need => {
+      this.spendAll(userData, worldData, need.id, need.count);
+    });
+
 
     this.saveUser(message.author.id, userData);
     this.saveWorld(userData.current, worldData);
@@ -676,6 +668,7 @@ module.exports = {
     if (userData.tools) {
       msg = `Tev ir šādi ieroči:\n`;
       userData.tools.forEach(t => {
+
         const tool = this.getTool(t.id);
         let c = '';
         if (t.count && t.count > 1)
@@ -712,26 +705,31 @@ module.exports = {
   },
 
   gotoWorld(userData, worldData, message, args) {
-    if (args.length < 3) {
-      message.channel.send('Uz kurieni vēlies doties - up, down, left, right?');
-      return;
-    }
-    if (userData.st < 1) {
-      message.channel.send('Tev nepietiek spēka pārvietoties, uzēd kaut ko');
-      return;
-    }
+    if (args.length < 3)
+      return message.channel.send('Uz kurieni vēlies doties - up, down, left, right?');
+
+    if (args[2] === 'help' || args[2] === 'h') 
+      return message.channel.send(`Komanda pārvieto Tevi norādītā virzienā - up, down, left, right`);
+
+    if (userData.st < 1)
+      return message.channel.send('Tev nepietiek spēka pārvietoties, uzēd kaut ko');
+
     let pos = this.getWorldXY(userData.current);
     switch (args[2]) {
       case 'up':
+      case 'u':
         pos.y++;
         break;
       case 'down':
+      case 'd':
         pos.y--;
         break;
       case 'left':
+      case 'l':
         pos.x--;
         break;
       case 'right':
+      case 'r':
         pos.x++
         break;
 
@@ -783,9 +781,9 @@ module.exports = {
     if (food.type != 1)
       return message.channel.send(`${args[2]} nav ēdiens!`);
 
-    const c = this.countInventory(food.id, userData);
+    const c = this.countAll(food.id, userData, worldData);
     if (c < 1)
-      return message.channel.send(`Tev somā nav neviena ${args[2]}!`);
+      return message.channel.send(`Tev nav neviena ${args[2]}!`);
 
     let count = 1;
     if (args[3] && !isNaN(args[3])) {
@@ -804,14 +802,14 @@ module.exports = {
     if (userData.st > userData.stMax)
       userData.st = userData.stMax;
 
-    this.addInventory(userData, food.id, -count);
+    this.spendAll(userData, worldData, food.id, count);
 
     this.saveUser(message.author.id, userData);
 
     const msg =
       `Tu apēdi ${count} ${args[2]}\n` +
-      `\tHP - ${userData.hp}\n` +
-      `\tStamina - ${userData.st}\n`
+      `\tHp - ${userData.hp} (${userData.hpMax}) ` + this.getProgress(userData.hp,userData.hpMax) + `\n` +
+      `\tStamina - ${userData.st} (${userData.stMax}) `+ this.getProgress(userData.st,userData.stMax) + `\n`;
 
     message.channel.send(msg);
   },
@@ -839,6 +837,20 @@ module.exports = {
         chest = building;
     });
 
+    if (args[2] && (args[2] === 'help' || args[2] === 'h')) {
+      let msg =
+        `Lādes komandas:\n` +
+        `\t(i)nfo - informācijas par lādes saturu\n` +
+        `\t(l)ock - aizslēgt lādi\n` +
+        `\tu(n)lock - atslēgt lādi\n` +
+        `\t(p)ick itemName (count) - paņemt no lādes lietu itemName skaitā count\n` +
+        `\t(p)ick (a)ll - paņemt no lādes visas lietas\n` +
+        `\tp(u)t itemName (count) - Pārlikt lietu itemName uz lādi\n` +
+        `\tp(u)t (a)ll - Pārlikt visas lietas no somas uz lādi\n`
+
+      return message.channel.send(msg);
+    }
+
     if (!chest)
       return message.channel.send('Te neatrodas nevienas lādes!');
 
@@ -864,7 +876,7 @@ module.exports = {
       return message.channel.send(msg);
     }
 
-    if (args[2] === 'lock') {
+    if (args[2] === 'lock' || args[2] === 'l') {
       if (chest.uid != message.author.id)
         return message.channel.send('Tev nepieder šī lāde, nevari to aizslegt');
 
@@ -872,7 +884,7 @@ module.exports = {
       this.saveWorldBuildings(userData.current, worldData.buildings);
       return message.channel.send('Tu aizslēdzi savu lādi, lai citi nevandās tajā!');
     }
-    if (args[2] === 'unlock') {
+    if (args[2] === 'unlock' || args[2] === 'n') {
       if (chest.uid != message.author.id)
         return message.channel.send('Tev nepieder šī lāde, nevari to aizslegt');
 
@@ -1081,7 +1093,11 @@ module.exports = {
     userData.st -= tool.st;
 
     let msg = "";
+    let attacking = true;
     worldData.beasts.forEach(beast => {
+      if (!attacking)
+        return;
+
       const b = this.getBeast(beast.id);
       if (!beast.hp)
         beast.hp = b.hp;
@@ -1096,6 +1112,7 @@ module.exports = {
 
       if (tool.type === 1) //BOW attack, check arrows
       {
+        attacking = false;
         if (this.countInventory(2, userData) < 1) {
           msg += `Tev nepietk bultas, lai uzbruktu ${b.name}\n`;
           return;
@@ -1141,7 +1158,7 @@ module.exports = {
       return message.channel.send('Norādi lietas nosaukumu, ko vēlies pagatvot!');
 
     if (!worldData.buildings)
-      return message.channel.send('Te neatrodas fireplace! Varbūt uzbēvē.');
+      return message.channel.send('Te neatrodas nekādas būves.');
 
     let recepie = undefined;
     this.recepies.forEach(r => {
@@ -1168,46 +1185,49 @@ module.exports = {
     if (!work)
       return message.channel.send(`Te neatrodas ${building.name}. Varbūt uzbēvē.`);
 
-    function makeItem() {
+    let cnt = args[3] ? args[3] === 'a' ? 1000 : !isNaN(args[3]) ? parseInt(args[3]) : 1 : 1;
+
+    let res = 0;
+    for (let i = 0; i < cnt; i++) {
+
       let canMake = true;
       recepie.needs.forEach(n => {
         if (this.countAll(n.id, userData, worldData) < 1)
           canMake = false;
       });
       if (!canMake)
-        return false;
+        break;
 
       recepie.needs.forEach(n => {
-        this.spendAll(userData, n.id, n.count);
+        this.spendAll(userData, worldData, n.id, n.count);
       });
 
       recepie.result.forEach(r => {
         this.addInventory(userData, r.id, r.count);
       });
 
-
-      return true;
-
-    }
-
-    let cnt = args[3] ? args[3] === 'a' ? 1000 : !isNaN(args[3]) ? parseInt(args[3]) : 1 : 1;
-
-    let res = 0;
-    for (let i = 0; i < cnt; i++) {
-      if  (!makeItem())
-        break;
-
       res++;
     }
-    
-    if (res < 1)
-      return message.channel.send(`Neizdevās pagatavot ${args[2]}`);
+
+    if (res < 1) {
+      let msg = `Pietrūkst resursu, lai pagatavotu ${args[2]}\n`;
+      recepie.needs.forEach(n => {
+        const itm = this.getItem(n.id);
+        const c = this.countAll(n.id, userData, worldData);
+        msg += `\t${itm.name}: ${n.count} (${c})\n`;
+      });
+      return message.channel.send(msg);
+    }
 
     let msg = `Tu pagatavoji ${args[2]} un ieguvi\n`
     recepie.result.forEach(r => {
       const itm = this.getItem(r.id);
-      msg += `\t${itm.name}: ${r.count}\n`;
+      msg += `\t${itm.name}: ${r.count * res}\n`;
     });
+
+    this.saveUser(message.author.id, userData);
+    this.saveWorld(userData.current, worldData);
+
 
     return message.channel.send(msg);
 
@@ -1248,6 +1268,21 @@ module.exports = {
 
   calcLevel(level) {
     return Math.sqrt(Math.floor(level));
+  },
+
+  getProgress(progress, max) {
+    const blank = "░";
+    const black = "▓";
+
+    const p = (progress / max) * 10;
+
+    let msg = '';
+    for (let i = 0; i < 10; i++) {
+      msg += p <= i ? blank : black;
+    }
+
+    return msg;
+
   },
 
   //#endregion
