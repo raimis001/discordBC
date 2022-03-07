@@ -12,10 +12,15 @@ module.exports = {
     { id: 3, name: "skin", type: 0 },
     { id: 4, name: "bone", type: 0 },
     { id: 5, name: "meat", type: 2 },
+    { id: 6, name: "roast", type: 1, effect: { hp: 25, st: 15 } },
+  ],
+
+  recepies: [
+    { id: 1, name: "roast", result: [{id: 6, count: 1}], building: 5, needs: [{ id: 5, count: 1 }, { id: 0, count: 2 }] }
   ],
 
   terrains: [
-    { id: 0, name: "jūras" },
+    { id: 0, name: "jūra" },
     { id: 1, name: "pļavas" },
     { id: 2, name: "pļavas" },
     { id: 3, name: "pļavas" },
@@ -29,8 +34,8 @@ module.exports = {
   ],
 
   beasts: [
-    { id: 0, name: "deer", hp: 5, attack: 0, type: [1], terrains: [1, 2, 3, 4], rnd: 5, reward: [{id: 3, count: 1},{id: 4, count: 2}, {id: 5, count: 3}], msg: 'Tālumā Tu redzi ganāmies deer' },
-    { id: 1, name: "woodenboy", hp: 10, attack: 1, type: [0,1], terrains: [2, 3, 4, 5, 6], rnd: 3, reward: [{id: 0, count: 2}], msg: 'Woodenboy kaut kur tuvumā izdod savas urkšķošās skaņas, vari uzbrukt viņam, vai doties tālāk' },
+    { id: 0, name: "deer", hp: 5, attack: 0, type: [1], terrains: [1, 2, 3, 4], rnd: 5, reward: [{ id: 3, count: 1 }, { id: 4, count: 2 }, { id: 5, count: 3 }], msg: 'Tālumā Tu redzi ganāmies deer' },
+    { id: 1, name: "woodenboy", hp: 10, attack: 1, type: [0, 1], terrains: [2, 3, 4, 5, 6], rnd: 3, reward: [{ id: 0, count: 2 }], msg: 'Woodenboy kaut kur tuvumā izdod savas urkšķošās skaņas, vari uzbrukt viņam, vai doties tālāk' },
   ],
 
   buildings: [
@@ -39,12 +44,13 @@ module.exports = {
     { id: 2, name: "shelter", needs: [{ id: 0, count: 30 }, { id: 1, count: 10 }] },
     { id: 3, name: "bed", needs: [{ id: 0, count: 15 }] },
     { id: 4, name: "workbench", needs: [{ id: 0, count: 10 }, { id: 1, count: 5 }] },
+    { id: 5, name: "fireplace", needs: [{ id: 0, count: 5 }, { id: 1, count: 10 }] }
   ],
 
   tools: [
     { id: 0, name: "axe", type: 0, needs: [{ id: 0, count: 3 }, { id: 1, count: 1 }], dmg: 10, count: 1, st: 3 },
     { id: 1, name: "bow", type: 1, needs: [{ id: 0, count: 5 }], dmg: 10, count: 1, st: 2 },
-    { id: 2, name: "arrows", type: 2, needs: [{id: 0, count: 5}], count: 20},
+    { id: 2, name: "arrows", type: 2, needs: [{ id: 0, count: 5 }], count: 20 },
   ],
 
   perlin: require(`../tools/perlin.js`),
@@ -105,6 +111,9 @@ module.exports = {
 
     if (args[1] === 'attack' || args[1] === 'a')
       return this.attack(userData, worldData, message, args);
+
+    if (args[1] === 'make' || args[1] === 'm')
+      return this.make(userData, worldData, message, args);
 
     return message.channel.send('Napzīstama komanda');
   },
@@ -401,7 +410,7 @@ module.exports = {
 
   countAll(id, userData, worldData) {
     let cnt = this.countInventory(id, userData);
-    
+
     const chest = this.findBuilding(1, worldData);
     if (!chest || !chest.items)
       return cnt;
@@ -435,8 +444,7 @@ module.exports = {
 
     var cnt = count;
     userData.inventory.forEach(item => {
-      if (item.id === id)
-      {
+      if (item.id === id) {
         item.count -= cnt;
         cnt = item.count < 0 ? item.count * -1 : 0;
         if (item.count < 0)
@@ -447,7 +455,7 @@ module.exports = {
     if (cnt < 1) {
       return// console.log(`All from inventory ${cnt}`);
     }
-    
+
     const chest = this.findBuilding(1, worldData);
     if (!chest)
       return// console.log(`chest not found`);
@@ -580,7 +588,7 @@ module.exports = {
     worldData.buildings.push(save);
 
     building.needs.forEach(need => {
-      this.addInventory(userData, need.id, -need.count );
+      this.addInventory(userData, need.id, -need.count);
     });
 
     if (!userData.buildings) {
@@ -697,7 +705,7 @@ module.exports = {
 
     if (c > 0)
       msg += m;
-    else 
+    else
       msg += `Tava soma ir tukša`;
 
     message.channel.send(msg);
@@ -1010,7 +1018,7 @@ module.exports = {
       if (this.countAll(need.id, userData, worldData) < need.count)
         canCraft = false;
     });
-    
+
     if (!canCraft) {
       let msg = `Tev nepietiek lietu lai izgatavotu ${args[2]}\n`;
       tool.needs.forEach(need => {
@@ -1033,7 +1041,7 @@ module.exports = {
     });
 
     if (!add)
-      userData.tools.push({id: tool.id, level: 1, hp: 100, count: tool.count});
+      userData.tools.push({ id: tool.id, level: 1, hp: 100, count: tool.count });
 
     tool.needs.forEach(need => {
       this.spendAll(userData, worldData, need.id, need.count);
@@ -1051,12 +1059,12 @@ module.exports = {
 
     if (args.length < 3)
       return message.channel.send('Norādi ieroci ar ko uzbrukt!');
-   
+
     const tool = this.getToolByName(args[2]);
     if (!tool)
       return message.channel.send(`Neparezi norādīts ieroča nosaukums ${args[2]}`);
 
-    const wpn = [0,1];
+    const wpn = [0, 1];
     if (wpn.indexOf(tool.type) < 0)
       return message.channel.send(`${args[2]} nav ierocis`);
 
@@ -1071,26 +1079,24 @@ module.exports = {
       return message.channel.send(`Tev nepietiek spēka (${userData.st}), lai lietotu ${args[2]} (${tool.st})`);
 
     userData.st -= tool.st;
-    
+
     let msg = "";
     worldData.beasts.forEach(beast => {
       const b = this.getBeast(beast.id);
-      if (!beast.hp) 
+      if (!beast.hp)
         beast.hp = b.hp;
-      
+
       if (beast.hp <= 0)
         return;
 
-      if (b.type.indexOf(tool.type) < 0)
-      {
+      if (b.type.indexOf(tool.type) < 0) {
         msg += `Ierocis ${args[2]} nenodara kaitējumu ${b.name}\n`;
         return;
       }
 
       if (tool.type === 1) //BOW attack, check arrows
       {
-        if (this.countInventory(2, userData) < 1)
-        {
+        if (this.countInventory(2, userData) < 1) {
           msg += `Tev nepietk bultas, lai uzbruktu ${b.name}\n`;
           return;
         }
@@ -1098,11 +1104,10 @@ module.exports = {
       }
 
       beast.hp -= (tool.dmg * this.calcLevel(weapon.level)).toFixed(2);
-       
+
 
       msg += `Tu uzbruki ${b.name} ar ${args[2]}\n`;
-      if (beast.hp <= 0)
-      {
+      if (beast.hp <= 0) {
         msg += `Tu nogalināji ${b.name} un ieguvi:\n`;
         b.reward.forEach(rew => {
           this.addInventory(userData, rew.id, rew.count);
@@ -1112,8 +1117,7 @@ module.exports = {
       } else {
         //TODO beast attack
         msg += `Tu ievainoji ${args[2]} - dzīvība: ${beast.hp} \n`;
-        if (b.attack > 0)
-        {
+        if (b.attack > 0) {
           //TODO calculate defence
           userData.hp -= b.attack;
           msg += `${args[2]} dod atbildes sitienu, Tev palika ${userData.hp} dzīvības\n`;
@@ -1127,6 +1131,83 @@ module.exports = {
 
     this.saveUser(message.author.id, userData);
     this.saveWorld(userData.current, worldData);
+
+    return message.channel.send(msg);
+
+  },
+
+  make(userData, worldData, message, args) {
+    if (args.length < 3)
+      return message.channel.send('Norādi lietas nosaukumu, ko vēlies pagatvot!');
+
+    if (!worldData.buildings)
+      return message.channel.send('Te neatrodas fireplace! Varbūt uzbēvē.');
+
+    let recepie = undefined;
+    this.recepies.forEach(r => {
+      if (r.name === args[2])
+        recepie = r;
+    });
+    if (!recepie)
+      return message.channel.send(`Tu nepareizi norādīji receptes nosaukumu ${args[2]}`);
+
+    let building = undefined;
+    this.buildings.forEach(b => {
+      if (b.id === recepie.building)
+        building = b;
+    });
+    if (!building)
+      return message.channel.send(`Neparezi norādīta nepieciešamā būve ${recepie.building}`);
+
+    let work = undefined;
+    worldData.buildings.forEach(building => {
+      if (building.id === recepie.building)
+        work = building;
+    });
+
+    if (!work)
+      return message.channel.send(`Te neatrodas ${building.name}. Varbūt uzbēvē.`);
+
+    function makeItem() {
+      let canMake = true;
+      recepie.needs.forEach(n => {
+        if (this.countAll(n.id, userData, worldData) < 1)
+          canMake = false;
+      });
+      if (!canMake)
+        return false;
+
+      recepie.needs.forEach(n => {
+        this.spendAll(userData, n.id, n.count);
+      });
+
+      recepie.result.forEach(r => {
+        this.addInventory(userData, r.id, r.count);
+      });
+
+
+      return true;
+
+    }
+
+    let cnt = args[3] ? args[3] === 'a' ? 1000 : !isNaN(args[3]) ? parseInt(args[3]) : 1 : 1;
+
+    let res = 0;
+    for (let i = 0; i < cnt; i++) {
+      if  (!makeItem())
+        break;
+
+      res++;
+    }
+    
+    if (res < 1)
+      return message.channel.send(`Neizdevās pagatavot ${args[2]}`);
+
+    let msg = `Tu pagatavoji ${args[2]} un ieguvi\n`
+    recepie.result.forEach(r => {
+      const itm = this.getItem(r.id);
+      msg += `\t${itm.name}: ${r.count}\n`;
+    });
 
     return message.channel.send(msg);
 
