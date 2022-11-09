@@ -13,6 +13,7 @@ module.exports = {
       databaseURL: "https://discordbc-49980-default-rtdb.firebaseio.com"
     });
     this.database = fbAdmin.database();
+    console.log("Database ready");
   },
 
  

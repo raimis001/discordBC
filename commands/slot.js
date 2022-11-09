@@ -27,6 +27,14 @@ module.exports = {
         "══╬╬╣╗╝╣╝",
     ],
 
+    init(bc, client)
+    {
+      this.bc = bc;
+      this.discord = client;
+
+       console.log(`${this.name} module ready`);
+    },
+  
     process(message, args) {
 
         if (args[1] === 'help' || args[1] === 'h')
@@ -70,25 +78,6 @@ module.exports = {
 
             userData.usd = userData.usd - usd + usd * win;
             this.bc.saveUser(message.author.id, userData);
-
-            // setTimeout(() => {
-            //     message.reply(`${r0} ...`);
-            //     setTimeout(() => {
-            //         message.reply(`${r0} ${r1} ...`);
-            //         setTimeout(() => {
-            //             message.reply(`${r0} ${r1} ${r2} ...`);
-            //             setTimeout(() => {
-            //                 let m = `${r0} ${r1} ${r2} ${r3}\n`;
-            //                 if (win == 0)
-            //                     m += `Tu zaudēji summu ${usd} USD`;
-            //                 else
-            //                     m += `Tev izkrita laimests ${usd * win} USD!`;
-
-            //                 message.reply(m);
-            //             }, 500);
-            //         }, 500);
-            //     }, 500);
-            // }, 500);
 
             let m = `${r0} ${r1} ${r2} ${r3}\n`;
             if (win == 0)

@@ -1,5 +1,5 @@
 module.exports = {
-  name: "viking",
+  name: "Kordēlija",
   description: "Survival game",
 
   database: 0,
@@ -58,8 +58,12 @@ module.exports = {
 
   regenTime: 5 * 60 * 1000,
 
-  init() {
+  init(database, client) {
+    this.database = database;
+    this.discord = client;
     this.perlin.init();
+
+    console.log(`${this.name} module ready`);
   },
   //#region PROCESS MESSAGES
 

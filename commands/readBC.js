@@ -7,14 +7,14 @@ module.exports = {
     lastReading: 0,
     uri: "https://api.coinbase.com/v2/prices/spot?currency=USD",
 
-    database: 0,
     db: 0,
     discord: 0,
 
     currentValue: 0,
 
-    init() {
-        this.db = this.database.database;
+    init(database, client) {
+      this.db = database;
+      this.discord = client;
 
         setInterval(() => {
             this.execute(() => {
@@ -25,6 +25,7 @@ module.exports = {
         this.readValue((val) => {
             console.log(val);
         });
+      console.log("Bitcoin module ready");
     },
 
     saveUser(id, data) {
