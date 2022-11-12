@@ -35,6 +35,14 @@ module.exports = {
 
     this.discord.once(Events.ClientReady, this.OnLogin );
     this.discord.on(Events.MessageCreate, this.OnMessage);
+    // this.discord.on(Events.ClientReady, () =>{
+    //   const user = this.discord.users.fetch("192163960814960650").then((u) => {
+    //     console.log(u)
+    //   });
+      
+
+    // } );
+    
   },
 
 }

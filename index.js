@@ -3,7 +3,7 @@ require("dotenv").config();
 const express = require("express");
 const app = express();
 let discordReady = false;
-app.listen(3000, () => 
+app.listen(process.env.PORT, () => 
 {
   console.log("Start BC bot!");
 });
@@ -33,9 +33,9 @@ const Init = (client) =>
   
   database.init();
   
-  commands.bitcoins.module.init(database.database, discord);
-  commands.viking.module.init(database.database, discord);
-  commands.slot.module.init(commands.bitcoins.module, discord);
+  commands.bitcoins.module.init(database.database, discord.discord);
+  commands.viking.module.init(database.database, discord.discord);
+  commands.slot.module.init(commands.bitcoins.module, discord.discord);
 };
 
 const Message = (message) => 
@@ -69,6 +69,8 @@ const Create = () =>
 
 }
 
-Create();
-//discord = require(`./commands/discordBC.js`)
-//discord.init(Init, Message)
+//Create();
+  discord = require(`./commands/discordBC.js`)
+  discord.init(Init, Message)
+
+//Ra ID - 192163960814960650

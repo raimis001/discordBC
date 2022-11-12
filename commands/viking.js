@@ -1,3 +1,9 @@
+const { Collection } = require("discord.js");
+const strings = {
+  msg01: 'Tālumā Tu redzi ganāmies deer',
+  msg02: 'Woodenboy kaut kur tuvumā izdod savas urkšķošās skaņas, vari uzbrukt viņam, vai doties tālāk',
+  msg03: 'Tu dzirdi šņācošas skaņas, kaut kur tuvumā ir gallsnake, tas ir bīstami',
+}
 module.exports = {
   name: "Kordēlija",
   description: "Survival game",
@@ -8,11 +14,11 @@ module.exports = {
   items: [
     { id: 0, name: "wood", type: 0, random: { terrains: [1, 2, 3, 4, 5], prc: 3, max: 5 } },
     { id: 1, name: "stone", type: 0, random: { terrains: [1, 2, 3, 4, 5, 8, 9], prc: 2, max: 5 } },
-    { id: 2, name: "berries", type: 1, effect: { hp: 10, st: 10 }, random: { terrains: [1, 2, 3, 4, 5], prc: 1, max: 5 } },
+    { id: 2, name: "berries", type: 1, effect: { hp: 1, st: 2 }, random: { terrains: [1, 2, 3, 4, 5], prc: 1, max: 3 } },
     { id: 3, name: "skin", type: 0 },
     { id: 4, name: "bone", type: 0 },
     { id: 5, name: "meat", type: 2 },
-    { id: 6, name: "roast", type: 1, effect: { hp: 25, st: 15 } },
+    { id: 6, name: "roast", type: 1, effect: { hp: 10, st: 7 } },
   ],
 
   recepies: [
@@ -34,8 +40,15 @@ module.exports = {
   ],
 
   beasts: [
-    { id: 0, name: "deer", hp: 5, attack: 0, type: [1], terrains: [1, 2, 3, 4], rnd: 5, reward: [{ id: 3, count: 1 }, { id: 4, count: 2 }, { id: 5, count: 3 }], msg: 'Tālumā Tu redzi ganāmies deer' },
-    { id: 1, name: "woodenboy", hp: 10, attack: 1, type: [0, 1], terrains: [2, 3, 4, 5, 6], rnd: 3, reward: [{ id: 0, count: 2 }], msg: 'Woodenboy kaut kur tuvumā izdod savas urkšķošās skaņas, vari uzbrukt viņam, vai doties tālāk' },
+    { id: 0, name: "deer", hp: 5, attack: 0, type: [1], terrains: [1, 2, 3, 4], rnd: 5, 
+       reward: [{ id: 3, count: 1 }, { id: 4, count: 2 }, { id: 5, count: 3 }], 
+       msg: strings.msg01 },
+    { id: 1, name: "woodenboy", hp: 10, attack: 1, type: [0, 1], terrains: [2, 3, 4,], rnd: 3, 
+       reward: [{ id: 0, count: 2 }], 
+       msg: strings.msg02 },
+    { id: 2, name: "gallsnake", hp: 10, attack: 1, type: [0, 1], terrains: [3, 4, 5], rnd: 3, 
+       reward: [{ id: 0, count: 2 }], 
+       msg: strings.msg03 },
   ],
 
   buildings: [
@@ -92,7 +105,7 @@ module.exports = {
     if (args[1] === 'pick' || args[1] === 'p')
       return this.pickItem(userData, worldData, message, args)
 
-    if (args[1] === 'info' || args[1] === 'i')
+    if (args[1] === 'iventory' || args[1] === 'i')
       return this.showInventory(userData, worldData, message);
 
     if (args[1] === 'go' || args[1] === 'g')
@@ -119,9 +132,26 @@ module.exports = {
     if (args[1] === 'make' || args[1] === 'm')
       return this.make(userData, worldData, message, args);
 
-    return message.channel.send('Napzīstama komanda');
+    if (args[1] === 'help' || args[1] === 'h')
+      return this.help(userData, worldData, message, args);
+
+    return message.channel.send('Napazīstama komanda');
   },
   //#endregion
+
+  help(userData, worldData, message, args) {
+    const msg = 
+      'Commands:\n' +
+      '(i)nventory\n' +
+      '(c)hest [(h)elp]\n' +
+      '(g)o [up, down, left, right]\n' +
+      '(t)eleport [stonepile name]\n' +
+      '(p)ick [(a)ll | item name]\n' +
+      'c(r)aft [item name]\n' +
+      '(m)ake [recepie name]\n'
+
+    message.channel.send(msg);
+  },
 
   //#region USER DATA
 
@@ -469,48 +499,106 @@ module.exports = {
 
   //#region COMMANDS
   getInfo(userData, worldData, message) {
-    var msg =
+    this.showInfo(userData, worldData, message);
+    this.showBuildings(userData, worldData, message);
+    this.showItems(userData, worldData, message);
+    this.showBeasts(userData, worldData, message);
+    this.showTeleports(userData, worldData, message);
+  },
+
+  showInfo(userData, worldData, message)  {
+    const msg =
       `Tava atrašanās vieta: ${userData.current}\n` +
       `Tu atrodies ${this.terrains[worldData.terrain].name}\n` +
       `Hp - ${userData.hp} (${userData.hpMax}) ` + this.getProgress(userData.hp,userData.hpMax) + `\n` +
       `Stamina - ${userData.st} (${userData.stMax}) `+ this.getProgress(userData.st,userData.stMax) + `\n`
       ;
-    if (!worldData.buildings)
-      msg += `Te neatrodas nekādas būves\n`;
-    else {
-      msg += `Te atrodas šādas ēkas:\n`;
-      worldData.buildings.forEach(build => {
-        //TODO: samainīt ar fetch user
-        const user = this.discord.users.cache.get(build.uid).username;
-        const b = this.getBuilding(build.id);
-        msg += `\t${b.name} ${build.id === 0 ? '(' + build.name + ')' : ''} no ${user}\n`;
-      });
-    }
-    if (worldData.items && worldData.items.length > 0) {
-      //console.log(worldData.items);
-      let m = `Zemē mētājas:\n`;
-      let cnt = 0;
-      worldData.items.forEach(item => {
-        cnt += item.count;
-        if (item.count > 0) {
-          const itm = this.getItem(item.id);
-          m += `\t${itm.name}: ${item.count} gab\n`;
-        }
-      });
-      if (cnt > 0)
-        msg += m;
-    }
-
-    if (worldData.beasts && worldData.beasts.length > 0) {
-      worldData.beasts.forEach(beast => {
-        const b = this.getBeast(beast.id);
-        msg += b.msg + '\n';
-      });
-    }
-
     message.channel.send(msg);
   },
 
+  showItems(userData, worldData, message) {
+    if (!worldData.items || worldData.items.length <= 0) 
+      return;
+    
+    let msg = `Zemē mētājas:\n`;
+    let cnt = 0;
+    worldData.items.forEach(item => {
+      cnt += item.count;
+      if (item.count > 0) {
+        const itm = this.getItem(item.id);
+        msg += `\t${itm.name}: ${item.count} gab\n`;
+      }
+    });
+    
+    if (cnt <= 0)
+      return;
+    
+    message.channel.send(msg);
+  },
+
+  showBuildings(userData, worldData, message)  {
+    
+    if (!worldData.buildings || worldData.buildings.length <= 0) {
+      message.channel.send(`Te neatrodas nekādas būves\n`);
+      return
+    }
+
+    
+    let buildPromise = [];
+    var list = new Collection();
+    let msg = `Te atrodas šādas ēkas:\n`;
+    worldData.buildings.forEach((build, index) => {
+      buildPromise.push(this.discord.users.fetch(build.uid));
+      list.set(index, build);
+    }); 
+
+    Promise.all(buildPromise).then((users) => {
+
+      users.forEach((user, index) => {
+        const build = list.get(index);
+
+        const b = this.getBuilding(build.id);
+        msg += `\t${b.name} ${build.id === 0 ? '(' + build.name + ')' : ''} no ${user.username}\n`;
+
+      })
+      message.channel.send(msg);
+      
+    })
+  },
+
+  showBeasts(userData, worldData, message)  {
+    if (!worldData.beasts || worldData.beasts.length <= 0)
+      return;
+
+    let msg = ''
+    worldData.beasts.forEach(beast => {
+      const b = this.getBeast(beast.id);
+      msg += b.msg + '\n';
+    });
+    
+    message.channel.send(msg);
+  },
+
+  showTeleports(userData, worldData, message) {
+    if (!userData.buildings)
+      return  message.channel.send("Tu neesi uzcēlis nevienu akmeņkrāvumu");
+    
+    let msg = 'Tavi akmenskrāvumi:\n' 
+    let cnt = 0;
+    
+    userData.buildings.forEach(build => {
+      if (build.id === 0 ) {
+        msg += `\t${build.name}`;
+        cnt++;
+      }
+    });
+
+    if (cnt < 1)
+      return  message.channel.send("Tu neesi uzcēlis nevienu akmeņkrāvumu");
+    
+    message.channel.send(msg);
+  },
+  
   build(userData, worldData, message, args) {
     if (args.length < 3) {
       let msg = `Norādi, ko vēlies būvēt\n`;
@@ -521,7 +609,7 @@ module.exports = {
           const b = this.getItem(need.id);
           nds += `${b.name} - ${need.count} `;
         });
-        msg += `\t${build.name} ${nds}\n`
+        msg += `\t${build.name}\n \t\t${nds}\n`
       });
       return message.channel.send(msg);
     }
@@ -610,7 +698,7 @@ module.exports = {
       return;
     }
 
-    if (args[2] === 'all' || args[2] === 'a') {//Pickup all items
+    if (args[2] === 'all' || args[2] === 'a' || args.length < 3) {//Pickup all items
       let msg = `Tu pacēli:\n`;
       worldData.items.forEach(item => {
         this.addInventory(userData, item.id, item.count);
@@ -754,10 +842,10 @@ module.exports = {
 
   teleport(userData, worldData, message, args) {
     if (!userData.buildings)
-      return message.channel.send("Tev nav uzbūvēts neviens teleports");
+      return message.channel.send("Tev nav uzbūvēts neviens akmeņkrāvums");
 
     if (args.length < 3)
-      return message.channel.send("Ieraksti teleporta nosaukumu uz kurieni vēlies doties");
+      return message.channel.send("Ieraksti akmeņkrāvuma nosaukumu uz kurieni vēlies doties");
 
     let tel = undefined;
     userData.buildings.forEach(build => {
@@ -767,7 +855,7 @@ module.exports = {
     });
 
     if (!tel)
-      return message.channel.send(`Nav atrast teleports ar nosaukumu ${args[2]}`);
+      return message.channel.send(`Nav atrast akmeņkrāvums ar nosaukumu ${args[2]}`);
 
     message.channel.send('Tu teleportējies');
     this.gotoWorldXY(tel.pos, userData, message);
@@ -1012,7 +1100,7 @@ module.exports = {
       return message.channel.send('Norādi lietas nosaukumu, ko vēlies izveidot!');
 
     if (!worldData.buildings)
-      return message.channel.send('Te neatrodas workbench! Varbūt uzbēvē.');
+      return message.channel.send('Te neatrodas workbench! Varbūt uzbūvē.');
 
     let work = undefined;
     worldData.buildings.forEach(building => {
@@ -1020,7 +1108,7 @@ module.exports = {
         work = building;
     });
     if (!work)
-      return message.channel.send('Te neatrodas workbench! Varbūt uzbēvē.');
+      return message.channel.send('Te neatrodas workbench! Varbūt uzbūvē.');
 
     const tool = this.getToolByName(args[2]);
     if (!tool)
@@ -1146,12 +1234,11 @@ module.exports = {
       }
     });
 
-    if (userData.hp <= 0)
-      return this.dead(message, userData, worldData, msg);
-
-
     this.saveUser(message.author.id, userData);
     this.saveWorld(userData.current, worldData);
+
+    if (userData.hp <= 0)
+      return this.dead(message, userData, worldData, msg);
 
     return message.channel.send(msg);
 
