@@ -23,26 +23,16 @@ module.exports = {
                                 partials: [Partials.Channel]
                               });
     
-    //console.log(process.env.token)
-    
     this.discord.login(process.env.token).catch(err => {
        console.error('');
        console.error(chalk.redBright("Couldn't log into Discord. Wrong bot token?"));
        console.error('');
        console.error(err);
-       //process.exit();
      });
 
     this.discord.once(Events.ClientReady, this.OnLogin );
     this.discord.on(Events.MessageCreate, this.OnMessage);
-    // this.discord.on(Events.ClientReady, () =>{
-    //   const user = this.discord.users.fetch("192163960814960650").then((u) => {
-    //     console.log(u)
-    //   });
-      
-
-    // } );
-    
+   
   },
 
 }
