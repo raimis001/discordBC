@@ -5,11 +5,20 @@ const strings = {
   error02: "User data reading error",
   error03: 'Nepazīstama komanda',
   
-  msg01: 'Tālumā Tu redzi ganāmies deer',
-  msg02: 'Woodenboy kaut kur tuvumā izdod savas urkšķošās skaņas',
-  msg03: 'Tu dzirdi šņācošas skaņas, kaut kur tuvumā ir gallsnake, tas ir bīstami',
+  beast01: 'Tālumā Tu redzi ganāmies deer',
+  beast02: 'Woodenboy kaut kur tuvumā izdod savas urkšķošās skaņas',
+  beast03: 'Tu dzirdi šņācošas skaņas, kaut kur tuvumā ir gallsnake, tas ir bīstami',
+  beast04: 'Gaisā jūtama sēra smaka, kuru dvašo flamelings, tas ir ļoti bīstams stepes iemītnieks',
+  beast05: 'Sasaldēts lidojoš zobs, bez loka šim nekādi netikt klāt. Frostteeth dzīvo tikai ļoti augstos kalnos.',
 
+  msg01: 'Te neatrodas nekādas būves.',
+  msg02: 'Tev nav uzbūvūta gulta.',
+  msg03: 'Tu labi izgulējies un atjunojo spēkus.\n',
+  
   msg04: "Tu esi kritis varonīgā nāvē, tevi pārcels uz tuvāko gultu, vai sākuma punktu\nTu pazaudēji visas lietas, kuras atradās Tev rokās.",
+  msg05: "Šeit nekas nemētājas",
+  msg06: 'Zemē mētājas:\n',
+  msg07: '\t{0}: {1} gab\n',
 
   craft01: 'Norādi lietas nosaukumu, ko vēlies izveidot!\n',
   craft02: 'Te neatrodas workbench! Varbūt uzbūvē.',
@@ -25,6 +34,50 @@ const strings = {
   eat05: 'Tu apēdi $count $item',
 
   make01: 'Norādi lietas nosaukumu, ko vēlies pagatvot!\n',
+
+  attack01: 'Tuvumā nav ienaidnieku, kam uzbrukt',
+  attack02: 'Norādi ieroci ar ko uzbrukt!',
+  attack03: 'Tev nav izgatyavots neviens ierocis, izgatavo to būvnīcā',
+  attack04: 'Neparezi norādīts ieroča nosaukums $item',
+  attack05: '$item nav ierocis',
+  attack06: 'Tev nav izgatavots $item',
+  attack07: 'Ierocis $item ir sabojājies, salabo to būvnīcā!',
+  attack08: 'Tev nepietiek spēka ($st), lai lietotu $item ($st1)',
+  attack09: 'Ierocis $item nenodara kaitējumu $beast\n',
+  attack10: 'Tev uzbruka $beast ar spēku $attack\n',
+  attack11: '$beast dod atbildes sitienu, Tev palika $hp dzīvības\n',
+  attack12: 'Tev nepietiek bultas, lai uzbruktu $beast\n',
+  attack13: 'Tu uzbruki $beasr ar $item\n',
+  attack14: 'Tu nogalināji $beast un ieguvi:\n',
+  attack15: 'Tu ievainoji {0} - palika dzīvība: {1}\n',
+  attack16: '{0} dod atbildes sitienu ar spēku {1}\n',
+
+  helpT01: '[axe] Cirvis labs iesācēja ierocis, viegli iemācīties un labi sit dažādus mošķus, kas staigā pa zemi',
+  helpT02: '[bow] Loks labi noder medīt tālu staigājošus vai lidojošus mošķus. Mošķis ne vienmēr var atbildēt uz loka šaušanu',
+  helpT03: '[arrows] Ja ir loks, nepieciešamas arī bultas, bez bultām loks bezjēdzīgs.',
+  helpT04: '[pants] Ja ir kājās bikses, vieglak skriet gan cauri brikšņiem, gan pa tīrumiem, nedaudz palīdz pret mošķu uzbrukumiem.',
+  helpT05: '[tunic] Ir jabi, ja ķermeni aizsargā ādas kamzolis, mošķu uzbrukumi mazāk sāpīgi, kā arī vieglāk pārvietoties',
+
+  helpI0: '[wood] Parasts koks, daudz kur izmanto, daudz kur var atrast',
+  helpI1: '[stone] Akmens, saimniecībā noderīga lieta',
+  helpI2: '[berries] Ogas aug daudz kur, tā ir noderīga barība it sevišķi sākumā',
+  helpI3: '[skin] Pievārējot kādu mošķi, no dažiem var iegūt ādu',
+  helpI4: '[bone] Daži mošķi pēc sevis atstāj tikai kaulus',
+  helpI5: '[meat] Jēla gaļa iegūstama no dažiem mošķiem, bet tā nav ēdama, kamēr napagatavo',
+  helpI6: '[roast] Ugunskurā cepta gaļa, kas gan vēl var būt labāks izsalkušam kareivim',
+  helpI7: '[shrooms] Sēnes ir ēdamas, kaut kur mežā noteikti aug sēnes',
+  helpI8: '[lians] Uz kokiem aug dažādas lietas, ja noplēš uzaugumus, var iegūt ko noderīgu, piemēram virves',
+  helpI9: '[rope] Bez virves kā bez rokām, virvi gan būs jāpin pašam, atrast to nevarēs',
+  helpI10: '[coal] Lai izkausētu metālu ar malku nepietiks, nākas iegūt ogles',
+
+  helpB0: '[stonepile] akmeņkrāvums kalpo kā zīme, kur tu vari atgriezties, bez vārda tas nedarbojas',
+  helpB1: '[chest] lādē vari glabāt visādas lietas tās nepazudīs, ja nomirsi',
+  helpB2: '[shelter] -',
+  helpB3: '[bed] atpūta laba lieta, tā atjaunos spēkus, veselību gan tā nespēj ietekmēt',
+  helpB4: '[workbench] būvnīca vari izgatavot lietas, kas tev palīdzēs izdzīt šajā pasaulē',
+  helpB5: '[fireplace] garšīgas ēdamas lietas vari pagatavot ugunskurā',
+
+  
 }
 module.exports = {
   name: "Kordēlija",
@@ -34,20 +87,21 @@ module.exports = {
   discord: 0,
 
   items: [
-    { id: 0, name: "wood", type: 0, random: { terrains: [1, 2, 3, 4, 5], prc: 5, max: 5 } },
-    { id: 1, name: "stone", type: 0, random: { terrains: [1, 2, 3, 4, 5, 8, 9], prc: 3, max: 3 } },
-    { id: 2, name: "berries", type: 1, effect: { hp: 1, st: 2 }, random: { terrains: [1, 2, 3, 4, 5], prc: 2, max: 2 } },
-    { id: 3, name: "skin", type: 0 },
-    { id: 4, name: "bone", type: 0 },
-    { id: 5, name: "meat", type: 2 },
-    { id: 6, name: "roast", type: 1, effect: { hp: 10, st: 7 } },
-    { id: 7, name: "shrooms", type: 1, effect: { hp: 2, st: 1 }, random: { terrains: [2, 3, 4, 5], prc: 1, max: 2 } },
-    { id: 8, name: "lians", type: 0, random: { terrains: [3, 4, 5], prc: 1, max: 3 }},
-    { id: 9, name: "rope", type: 0 },
+    { id: 0, name: "wood", type: 0, random: { terrains: [1, 2, 3, 4, 5], prc: 7, max: 7 }, help: strings.helpI0 },
+    { id: 1, name: "stone", type: 0, random: { terrains: [1, 2, 3, 4, 5, 8, 9], prc: 3, max: 3 }, help: strings.helpI1 },
+    { id: 2, name: "berries", type: 1, effect: { hp: 1, st: 2 }, random: { terrains: [1, 2, 3, 4, 5], prc: 5, max: 3 }, help: strings.helpI2 },
+    { id: 3, name: "skin", type: 0, help: strings.helpI3 },
+    { id: 4, name: "bone", type: 0, help: strings.helpI4 },
+    { id: 5, name: "meat", type: 2, help: strings.helpI5 },
+    { id: 6, name: "roast", type: 1, effect: { hp: 10, st: 7 }, help: strings.helpI6 },
+    { id: 7, name: "shrooms", type: 1, effect: { hp: 2, st: 1 }, random: { terrains: [2, 3, 4, 5], prc: 1, max: 10 }, help: strings.helpI7 },
+    { id: 8, name: "lians", type: 0, random: { terrains: [3, 4, 5], prc: 1, max: 3 }, help: strings.helpI8 },
+    { id: 9, name: "rope", type: 0, help: strings.helpI9 },
+    { id: 10, name: "coal", type: 0, help: strings.helpI10 },
   ],
 
   recepies: [
-    { id: 1, name: "roast", result: [{ id: 6, count: 1 }], building: 5, needs: [{ id: 5, count: 1 }, { id: 0, count: 2 }] },
+    { id: 1, name: "roast", result: [{ id: 6, count: 1 }, { id: 10, count: 1}], building: 5, needs: [{ id: 5, count: 1 }, { id: 0, count: 2 }] },
     { id: 2, name: "rope", result: [{ id: 9, count: 5 }], building: 4, needs: [{ id: 8, count: 1 }] },
   ],
 
@@ -58,8 +112,8 @@ module.exports = {
     { id: 3, name: "pļavas" },
     { id: 4, name: "meži" },
     { id: 5, name: "meži" },
-    { id: 6, name: "tīrumi" },
-    { id: 7, name: "tīrumi" },
+    { id: 6, name: "stepes" },
+    { id: 7, name: "stepes" },
     { id: 8, name: "kalni" },
     { id: 9, name: "kalni" },
     { id: 10, name: "mistiskās zemes" },
@@ -68,34 +122,46 @@ module.exports = {
   beasts: [
     { id: 0, name: "deer", hp: 5, attack: 0, type: [1], agresive: 0, terrains: [1, 2, 3, 4], rnd: 5, 
        reward: [{ id: 3, count: 1 }, { id: 4, count: 2 }, { id: 5, count: 3 }], 
-       msg: strings.msg01 },
+       msg: strings.beast01 },
     { id: 1, name: "woodenboy", hp: 10, attack: 1, type: [0, 1], agresive: 0, terrains: [2, 3, 4,], rnd: 3, 
        reward: [{ id: 0, count: 2 }], 
-       msg: strings.msg02 },
-    { id: 2, name: "gallsnake", hp: 30, attack: 3, type: [0, 1], agresive: 8, terrains: [3, 4, 5], rnd: 3, 
+       msg: strings.beast02 },
+    { id: 2, name: "gallsnake", hp: 30, attack: 3, type: [0, 1], agresive: 5, terrains: [3, 4, 5], rnd: 3, 
        reward: [{ id: 3, count: 2 }, { id: 4, count: 1 }], 
-       msg: strings.msg03 },
+       msg: strings.beast03 },
+    { id: 3, name: "flameling", hp: 50, attack: 5, type: [0, 1], agresive: 7, terrains: [6, 7], rnd: 3, 
+       reward: [{ id: 5, count: 2 }, { id: 10, count: 1 }], 
+       msg: strings.beast04 },
+    { id: 4, name: "frostteeth", hp: 20, attack: 2, type: [1], agresive: 7, terrains: [8, 9], rnd: 3, 
+       reward: [{ id: 5, count: 2 }, { id: 4, count: 5 }], 
+       msg: strings.beast04 },
   ],
+  //https://www.fantasynamegenerators.com/monster-names.php
+  //Rotgolem
+  //Stinkgirl
+  
 
   buildings: [
-    { id: 0, name: "stonepile", needs: [{ id: 1, count: 10 }] },
-    { id: 1, name: "chest", needs: [{ id: 0, count: 20 }, { id: 1, count: 10 }] },
-    { id: 2, name: "shelter", needs: [{ id: 0, count: 30 }, { id: 1, count: 10 }] },
-    { id: 3, name: "bed", needs: [{ id: 0, count: 15 }] },
-    { id: 4, name: "workbench", needs: [{ id: 0, count: 10 }, { id: 1, count: 5 }] },
-    { id: 5, name: "fireplace", needs: [{ id: 0, count: 5 }, { id: 1, count: 10 }] }
+    { id: 0, name: "stonepile", needs: [{ id: 1, count: 10 }], help: strings.helpB0 },
+    { id: 1, name: "chest", needs: [{ id: 0, count: 20 }, { id: 1, count: 10 }], help: strings.helpB1 },
+    { id: 2, name: "shelter", needs: [{ id: 0, count: 30 }, { id: 1, count: 10 }], help: strings.helpB2 },
+    { id: 3, name: "bed", needs: [{ id: 0, count: 15 }], help: strings.helpB3 },
+    { id: 4, name: "workbench", needs: [{ id: 0, count: 10 }, { id: 1, count: 5 }], help: strings.helpB4 },
+    { id: 5, name: "fireplace", needs: [{ id: 0, count: 5 }, { id: 1, count: 10 }], help: strings.helpB5 }
   ],
 
   tools: [
-    { id: 0, name: "axe", type: 0, needs: [{ id: 0, count: 5 }, { id: 1, count: 2 }], dmg: 10, count: 1, st: 3 },
-    { id: 1, name: "bow", type: 1, needs: [{ id: 0, count: 25 }, { id: 9, count: 1 }], dmg: 10, count: 1, st: 2 },
-    { id: 2, name: "arrows", type: 2, needs: [{ id: 0, count: 5 }, { id: 1, count: 2 }], count: 20 },
+    { id: 0, name: "axe", type: 0, needs: [{ id: 0, count: 5 }, { id: 1, count: 2 }], dmg: 10, count: 1, st: 3, help: strings.helpT01 },
+    { id: 1, name: "bow", type: 1, needs: [{ id: 0, count: 25 }, { id: 9, count: 1 }], dmg: 8, count: 1, st: 2, help: strings.helpT02 },
+    { id: 2, name: "arrows", type: 2, needs: [{ id: 0, count: 5 }, { id: 1, count: 2 }], count: 20, help: strings.helpT03 },
+    { id: 3, name: "pants", type: 3, needs:[{id: 3, count: 5},{id: 4, count: 3}, {id: 9, count: 2}],count: 1, hp: 5, st: 10, help: strings.helpT04 },
+    { id: 4, name: "tunic", type: 3, needs:[{id: 3, count: 10},{id: 4, count: 2}, {id: 9, count: 2}],count: 1, hp: 15, st: 5, help: strings.helpT05 },
   ],
 
   perlin: require(`../tools/perlin.js`),
   perlinScale: 19,
 
-  regenTime: 5 * 60 * 1000,
+  regenTime: 20 * 60 * 1000,
 
   init(database, client) {
     this.database = database;
@@ -161,22 +227,120 @@ module.exports = {
     if (args[1] === 'help' || args[1] === 'h')
       return this.help(userData, worldData, message, args);
 
+    if (args[1] === 'sleep' || args[1] === 's')
+      return this.sleep(userData, worldData, message, args);
+
     return message.channel.send(strings.error03);
   },
   //#endregion
 
   help(userData, worldData, message, args) {
-    const msg = 
-      'Commands:\n' +
-      '(i)nventory\n' +
-      '(c)hest [(h)elp]\n' +
-      '(g)o [up, down, left, right]\n' +
-      '(t)eleport [stonepile name]\n' +
-      '(p)ick [(a)ll | item name]\n' +
-      'c(r)aft [item name]\n' +
-      '(m)ake [recepie name]\n'
+    if (args.length < 3) {
+      const msg = 
+        'Commands:\n' +
+        '(i)nventory\n' +
+        '(c)hest [(h)elp]\n' +
+        '(g)o [up, down, left, right]\n' +
+        '(t)eleport [stonepile name]\n' +
+        '(p)ick [(a)ll | item name]\n' +
+        'c(r)aft [item name]\n' +
+        '(b)uild [item name]\n' +
+        '(m)ake [recepie name]\n' +
+        '(s)leep - ja ir gulta, atjauno spēkus\n' +
+        '(h)elp items - lietu saraksts\n' +
+        '(h)elp craft - izgatavojamo lietu saraksts\n' +
+        '(h)elp build - būvju saraksts\n' +
+        '(h)elp [name] - wiki par lietu name\n'
+  
+      return message.channel.send(msg);
+    }
+    if (args[2] === 'items') {
+      let msg = 'Pieejamo lietu saraksts:\n';
+      this.items.forEach(item => {
+        msg += '\t' + item.name + '\n'
+      })
 
-    message.channel.send(msg);
+      return message.channel.send(msg);
+    }
+    if (args[2] === 'craft') {
+      let msg = 'Izgatavojamās lietas:\n'
+      this.tools.forEach(t => {
+        msg += '\t' + t.name + '\n'
+      })
+      return message.channel.send(msg);
+    }
+    if (args[2] === 'build') {
+      let msg = 'Pieejamās būves:\n'
+      this.buildings.forEach(b => {
+        msg += `\t${b.name}\n`
+      })
+      return message.channel.send(msg);
+    }
+
+    const tool = this.getToolByName(args[2]);
+    if (tool) {
+      let msg = tool.help + `\nLai pagatavotu ${tool.count} ${tool.name} nepieciešams\n`
+      tool.needs.forEach(n => {
+        const itm = this.getItem(n.id)
+        msg += `\t${itm.name} - ${n.count}\n`
+      })
+      if (tool.type == 0 || tool.type == 1){
+        msg += 'Parametri:\n'
+        msg += `\tDamage: ${tool.dmg} Stamina: ${tool.st}`
+      }
+      if (tool.type == 3) {
+        msg += 'Papildina:\n'
+        msg += `\tMax HP +${tool.hp} Max ST +${tool.st}`
+      }
+      return message.channel.send(msg);
+    }
+    const item = this.getItemByName(args[2])
+    if (item) {
+      let msg = item.help + '\n';
+      const recepie = this.getRecepieByName(args[2])
+      if (recepie) {
+        const b = this.getBuilding(recepie.building)
+        msg += `Var pagatavot ${b.name}:\n`
+        recepie.needs.forEach(n => {
+          const itm = this.getItem(n.id)
+          msg += `\t${itm.name}: ${n.count} \n`
+        })
+        msg += 'Iegūst:\n'
+        recepie.result.forEach(r => {
+          const itm = this.getItem(r.id)
+          msg += `\t${itm.name}: ${r.count} \n`
+        })
+      }
+      if (item.effect) {
+        msg += 'Effekts apēdot:\n'
+        msg += `\tHp +${item.effect.hp} ST +${item.effect.st}\n`
+      }
+      if (item.random) {
+        msg += 'Var atrast lokācijās:\n'
+        let last = ''
+        item.random.terrains.forEach(t=>{
+          const ter = this.getTerrain(t)
+          if (last === ter.name)
+            return
+          msg += `\t${ter.name}\n`
+          last = ter.name
+        })
+      }
+      
+      return message.channel.send(msg);
+    }
+
+    const build = this.getBuildingByName(args[2])
+    if (build) {
+      let msg = build.help + '\n'
+      msg += 'Lai uzbūvētu, nepieciešams:\n'
+      build.needs.forEach(b => {
+        const itm = this.getItem(b.id)
+        msg += `\t${itm.name} - ${b.count}\n`
+      })
+      
+      return message.channel.send(msg);
+    }
   },
 
   //#region USER DATA
@@ -345,10 +509,29 @@ module.exports = {
   //#endregion
 
   //#region SERVICES
+  getTerrain(id) {
+    let terrain = undefined
+    this.terrains.forEach(t => {
+      if (t.id === id)
+        terrain = t
+    })
+
+    return terrain
+  },
+  
   getBuilding(id) {
     let build = undefined;
     this.buildings.forEach(element => {
       if (element.id === id)
+        build = element;
+    });
+    return build;
+  },
+
+  getBuildingByName(name) {
+    let build = undefined;
+    this.buildings.forEach(element => {
+      if (element.name === name)
         build = element;
     });
     return build;
@@ -426,6 +609,15 @@ module.exports = {
     return tool;
   },
 
+  getRecepieByName(name) {
+    let recepie = undefined;
+    this.recepies.forEach(r => {
+      if (r.name === name)
+        recepie = r;
+    });
+    return recepie;
+  },
+
   getBeast(id) {
     let beast = undefined;
     this.beasts.forEach(b => {
@@ -436,32 +628,46 @@ module.exports = {
     return beast;
   },
 
-  beastAttack(userData, worldData, message) {
+  getBeastDamage(beast) {
+    if (beast.agresive < 1)
+        return 0;
+    
+    const rnd = this.getRandomInt(0, 9);
+      if (beast.agresive < rnd)
+        return 0;
+
+    return beast.attack;
+  },
+  
+  beastAttack(userData, worldData, message, showParams = false) {
     if (!worldData.beasts)
        return;
 
     let msg = ""
     let attacked = false
+    
     worldData.beasts.forEach(beast => {
       const b = this.getBeast(beast.id);
-      console.log(b.name);
-      
-      if (b.agresive < 1)
+      const a = this.getBeastDamage(b);
+      if (a <= 0)
         return;
 
-      const r = this.getRandomInt(0, 9);
-      if (b.agresive < r)
-        return;
-
-      userData.hp -= b.attack;
-      msg += `Tev uzbruka ${b.name} ar spēku ${b.attack}\n`;
+      userData.hp -= a;
+      msg += this.format(strings.attack10,["$beast","$attack"],[b.name, a]);
       attacked = true
     });
 
     if (!attacked)
       return;
 
-    message.channel.send(msg + this.getParams(userData));
+    if (showParams)
+      msg += this.getParams(userData)
+    
+    message.channel.send(msg)
+    
+    if (userData.hp <= 0)
+      return dead(userData, worldData, message);
+
     
   },
   
@@ -474,6 +680,9 @@ module.exports = {
       })
     }
 
+    userData.hp = userData.maxData;
+    userData.st = userData.stMax;
+    
     let tel = undefined;
     userData.buildings.forEach(build => {
       if (tel)
@@ -498,8 +707,10 @@ module.exports = {
   },
 
   countInventory(id, userData) {
+    if (!userData.inventory)
+      return 0
+    
     let cnt = 0;
-
     userData.inventory.forEach(item => {
       if (item.id === id)
         cnt += item.count;
@@ -570,6 +781,35 @@ module.exports = {
 
     //console.log(`Finish chest`)
   },
+
+  addTools(userData, id, count) {
+    if (!userData.tools)
+      userData.tools = [];
+    
+    let add = false;
+    userData.tools.forEach(t => {
+      if (t.id === id) {
+        t.count += count;
+        add = true;
+      }
+    });
+
+    if (!add)
+      userData.tools.push({ id: id, level: 1, hp: 100, count: count });
+  },
+  
+  countTools(id, userData) {
+    if (!userData.tools)
+       return 0
+
+    let cnt = 0
+    userData.tools.forEach(t => {
+      if (t.id === id)
+        cnt += t.count
+    })
+
+    return cnt;
+  },
   //#endregion
 
   //#region COMMANDS
@@ -592,22 +832,19 @@ module.exports = {
 
   showItems(userData, worldData, message) {
     if (!worldData.items || worldData.items.length <= 0) 
-      return;
+      return message.channel.send(strings.msg05);
     
-    let msg = `Zemē mētājas:\n`;
+    let msg = strings.msg06;
     let cnt = 0;
     worldData.items.forEach(item => {
       cnt += item.count;
       if (item.count > 0) {
         const itm = this.getItem(item.id);
-        msg += `\t${itm.name}: ${item.count} gab\n`;
+        msg += this.format1(strings.msg07,[itm.name, item.count]);
       }
     });
     
-    if (cnt <= 0)
-      return;
-    
-    message.channel.send(msg);
+    message.channel.send(cnt > 0 ? msg : strings.msg05);
   },
 
   showBuildings(userData, worldData, message)  {
@@ -681,7 +918,8 @@ module.exports = {
         let nds = "";
         build.needs.forEach(need => {
           const b = this.getItem(need.id);
-          nds += `${b.name} - ${need.count} `;
+          const c = this.countAll(need.id, userData, worldData)
+          nds += `${b.name} - ${need.count}(${c}) `;
         });
         msg += `\t${build.name}\n \t\t${nds}\n`
       });
@@ -762,29 +1000,36 @@ module.exports = {
 
     message.channel.send(`Tu uzbūveji ${args[2]}\n`);
     if (building.id === 0) {
-      message.channel.send(`Tagad vari izmantot teleportu ar nosaukumu ${args[3]}, lai ātri pārvietotos uz šo pazīciju`);
+      message.channel.send(`Tagad vari izmantot teleportu ar nosaukumu ${args[3]}, lai ātri pārvietotos uz šo pozīciju`);
     }
   },
 
   pickItem(userData, worldData, message, args) {
-    if (!worldData.items || worldData.items.length < 1) {
-      message.channel.send("Šeit neatrodas nekādu lietu ");
-      return;
-    }
+    if (!worldData.items || worldData.items.length < 1) 
+      return message.channel.send(strings.msg05);
 
     if (args[2] === 'all' || args[2] === 'a' || args.length < 3) {//Pickup all items
       let msg = `Tu pacēli:\n`;
+      let cnt = 0
       worldData.items.forEach(item => {
+        if (item.count <= 0)
+          return;
+        
+        cnt += item.count;
         this.addInventory(userData, item.id, item.count);
         const itm = this.getItem(item.id);
-        const cnt = this.countInventory(item.id, userData);
+        const c = this.countInventory(item.id, userData);
 
-        msg += `\t${itm.name} ${item.count} (${cnt})\n`;
+        msg += `\t${itm.name} ${item.count} (${c})\n`;
         item.count = 0;
       });
+      
       this.saveInventory(message.author.id, userData);
       this.saveWorldItems(userData.current, worldData.items);
-      message.channel.send(msg);
+
+      message.channel.send(cnt > 0 ? msg : strings.msg05);
+      
+      this.beastAttack(userData, worldData, message, true);
       return;
     }
 
@@ -820,9 +1065,7 @@ module.exports = {
       }
     });
 
-    this.beastAttack(userData, worldData, message);
-    if (user.hp <= 0)
-      return dead(userData, worldData, message);
+    this.beastAttack(userData, worldData, message, true);
 
     const c = this.countInventory(id, userData)
     message.channel.send(`Tu pacēli ${cnt} ${args[2]} (${c})`);
@@ -909,14 +1152,10 @@ module.exports = {
 
     if (pos.x < 0 || pos.y < 0) 
       return message.channel.send("Tu esi sasniedzis pasaules malu un nevari tai doties pāri");
+
+    userData.st--;
     
     this.beastAttack(userData, worldData, message);
-
-    if (userData.hp <= 0)
-      return this.dead(userData, worldData, message);
-
-    
-    userData.st--;
     this.gotoWorldXY(this.getWorldPos(pos.x, pos.y), userData, message);
 
   },
@@ -1254,19 +1493,12 @@ module.exports = {
       return message.channel.send(msg);
     }
 
-    if (!userData.tools)
-      userData.tools = [];
-
-    let add = false;
-    userData.tools.forEach(t => {
-      if (t.id === tool.id) {
-        t.count += tool.count;
-        add = true;
-      }
-    });
-
-    if (!add)
-      userData.tools.push({ id: tool.id, level: 1, hp: 100, count: tool.count });
+    if (tool.type == 3) {
+      userData.hpMax += tool.hp
+      userData.stMax += tool.st
+    }
+    
+    this.addTools(userData,tool.id,tool.count)
 
     tool.needs.forEach(need => {
       this.spendAll(userData, worldData, need.id, need.count);
@@ -1280,28 +1512,34 @@ module.exports = {
 
   attack(userData, worldData, message, args) {
     if (!worldData.beasts)
-      return message.channel.send(`Tuvumā nav ienaidnieku, kam uzbrukt`);
+      return message.channel.send(strings.attack01);
 
-    if (args.length < 3)
-      return message.channel.send('Norādi ieroci ar ko uzbrukt!');
+    if (!userData.tools || userData.tools.length <= 0)
+      return message.channel.send(strings.attack03);
+    
+    if (args.length < 3) {
+      //TODO: show weapons list
+      return message.channel.send(strings.attack02);
+    }
 
     const tool = this.getToolByName(args[2]);
     if (!tool)
-      return message.channel.send(`Neparezi norādīts ieroča nosaukums ${args[2]}`);
+      return message.channel.send(this.format(strings.attack04,["$iten"],[args[2]]));
 
     const wpn = [0, 1];
     if (wpn.indexOf(tool.type) < 0)
-      return message.channel.send(`${args[2]} nav ierocis`);
+      return message.channel.send(this.format(strings.attack05, ["$item"], [args[2]]));
 
     const weapon = this.findTool(tool.id, userData);
     if (!weapon)
-      return message.channel.send(`Tev nav izgatavots ${args[2]}`);
+      return message.channel.send(this.format(strings.attack06, ["$item"], [args[2]]));
 
     if (weapon.hp < 1)
-      return message.channel.send(`Ierocis ${args[2]} ir sabojājies, salabo to būvnīcā!`);
+      return message.channel.send(this.format(strings.attack07, ["$item"], [args[2]]));
 
     if (userData.st < tool.st)
-      return message.channel.send(`Tev nepietiek spēka (${userData.st}), lai lietotu ${args[2]} (${tool.st})`);
+      return message.channel.send(this.format(strings.attack08, ["$item", "$st", "$st1"], [args[2], userData.st, tool.st]));
+                            
 
     userData.st -= tool.st;
 
@@ -1312,38 +1550,42 @@ module.exports = {
         return;
 
       const b = this.getBeast(beast.id);
+      const a = this.getBeastDamage(b);
       if (!beast.hp)
         beast.hp = b.hp;
 
       if (beast.hp <= 0)
         return;
 
-      if (b.type.indexOf(tool.type) < 0) {
-        msg += `Ierocis ${args[2]} nenodara kaitējumu ${b.name}\n`;
-        if (b.attack > 0) {
-          //TODO calculate defence
-          userData.hp -= b.attack;
-          msg += `${args[2]} dod atbildes sitienu, Tev palika ${userData.hp} dzīvības\n`;
+      if (b.type.indexOf(tool.type) < 0) {//Wrong weapon
+        msg += this.format(strings.attack09,["$item","$beast"],[args[2],b.name]);
+        if (a > 0) {
+          userData.hp -= a;
+          msg += this.format(strings.attack11,["$beast","$hp"], [b.name, userData.hp]);
         }
         return;
       }
 
-      if (tool.type === 1) //BOW attack, check arrows
-      {
+      if (tool.type === 1) {//BOW attack, check arrows
+      
         attacking = false;
-        if (this.countInventory(2, userData) < 1) {
-          msg += `Tev nepietk bultas, lai uzbruktu ${b.name}\n`;
+        
+        if ( this.countTools(2, userData) < 1) {
+          msg += this.format(strings.attack12,["$beast"],[b.name]);
           return;
         }
-        this.addInventory(userData, 2, -1);
+
+        if (a > 0 && this.getRandomInt(0,9) < 5)//50% less posibility conterattack
+          a = 0
+        
+        this.addTools(userData, 2, -1);
       }
 
       beast.hp -= (tool.dmg * this.calcLevel(weapon.level)).toFixed(2);
 
-
-      msg += `Tu uzbruki ${b.name} ar ${args[2]}\n`;
+      msg += this.format(strings.attack13,["$beast","$item"],[b.name, args[2]]);
       if (beast.hp <= 0) {
-        msg += `Tu nogalināji ${b.name} un ieguvi:\n`;
+        msg += this.format(strings.attack14,["$beast"],[b.name]);
         b.reward.forEach(rew => {
           this.addInventory(userData, rew.id, rew.count);
           const itm = this.getItem(rew.id);
@@ -1351,23 +1593,21 @@ module.exports = {
         });
       } else {
         //TODO beast attack
-        msg += `Tu ievainoji ${args[2]} - dzīvība: ${beast.hp} \n`;
-        if (b.attack > 0) {
-          //TODO calculate defence
-          userData.hp -= b.attack;
-          msg += `${args[2]} dod atbildes sitienu\n`;
+        msg += this.format1(strings.attack15,[b.name, beast.hp]);
+        if (a > 0) {
+          userData.hp -= a;
+          msg += this.format1(strings.attack16,[b.name, a]);
         }
       }
     });
 
     message.channel.send(msg + this.getParams(userData));
 
-    this.saveUser(message.author.id, userData);
-    this.saveWorld(userData.current, worldData);
-
-    
     if (userData.hp <= 0)
       return this.dead(message, userData, worldData);
+    
+    this.saveUser(message.author.id, userData);
+    this.saveWorld(userData.current, worldData);   
 
   },
 
@@ -1389,13 +1629,9 @@ module.exports = {
     }
 
     if (!worldData.buildings)
-      return message.channel.send('Te neatrodas nekādas būves.');
+      return message.channel.send(strings.msg01);
 
-    let recepie = undefined;
-    this.recepies.forEach(r => {
-      if (r.name === args[2])
-        recepie = r;
-    });
+    let recepie = this.getRecepieByName(args[2]);
     if (!recepie)
       return message.channel.send(`Tu nepareizi norādīji receptes nosaukumu ${args[2]}`);
 
@@ -1463,6 +1699,29 @@ module.exports = {
     return message.channel.send(msg);
 
   },
+  
+  sleep(userData, worldData, message, args) {
+    if (args[2] === 'h' || args[2] === 'help') {
+      let msg = 'Ja ir gulta, var izgulēt nogurumu'
+      return message.channel.send(msg);
+    }
+    if (!worldData.buildings)
+      return message.channel.send(strings.msg01);
+
+    let work = undefined;
+    worldData.buildings.forEach(building => {
+      if (building.id === 3)
+        work = building;
+    });
+
+    if (!work)
+      return message.channel.send(strings.msg02);
+
+    userData.st = userData.maxSt;
+    this.saveUser(message.author.id, userData);
+
+    return message.channel.send(strings.msg03 + this.getParams(userData));
+  },
   //#endregion
 
   //#region UTILS
@@ -1524,13 +1783,21 @@ module.exports = {
     return msg;
   },
 
-  format(message, form, values){
+  format(message, form, values) {
     for (let i = 0; i < form.length; i++) {
       if (message.includes(form[i]))
         message = message.replace(form[i], values[i])
     }
     return message
   },
+
+  format1(message, values) {
+    for (let i = 0; i < values.length; i++) {
+      const form = "{" + i +"}";
+      message = message.replace(form, values[i])
+    }
+    return message
+  }
   
   //#endregion
 }
